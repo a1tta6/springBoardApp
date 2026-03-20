@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.4.xsd">
+
+    <changeSet id="trampoline-baseline/v3/2026-03-20/1" author="Timokhov_Evgeniy">
+        <sql>
+            <![CDATA[
+            CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+            CREATE TYPE role_type AS ENUM ('ORGANIZER','MEMBER','MODERATOR');
+            CREATE TYPE format_type AS ENUM ('ONLINE','OFFLINE');
+            CREATE TYPE privacy_type AS ENUM ('PUBLIC','PRIVATE','ONLY_FRIENDS');
+            CREATE TYPE friend_request_status_type AS ENUM ('PENDING','ACCEPTED','REJECTED');
+            CREATE TYPE opportunity_response_status_type AS ENUM ('APPLIED', 'ACCEPTED', 'REJECTED', 'RESERVED');
+            CREATE TYPE opportunity_type AS ENUM ('INTERNSHIP','VACANCY','MENTORING','EVENT');
+            CREATE TYPE work_mode_type AS ENUM ('OFFICE','HYBRID','REMOTE');
+            CREATE TYPE opportunity_visibility_status_type AS ENUM ('DRAFT','PUBLISHED','ARCHIVED','REJECTED');
+
+            CREATE TABLE public.user(
+                id bigserial primary key,
+                role role_type NOT NULL,
+                email varchar NOT NULL UNIQUE,
+                username varchar NOT NULL UNIQUE,
+                display_name varchar NOT NULL,
+                password varchar NOT NULL,
+                is_active boolean NOT NULL DEFAULT true
+            );
+
+            CREATE TABLE public.organizer(
+                id bigint primary key,
+                name varchar,
+                description varchar,
+                industry varchar,
+                address varchar,
+                is_accredited boolean NOT NULL DEFAULT false,
+                CONSTRAINT fk_organizer_user
+                    FOREIGN KEY (id)
+                    REFERENCES public.user(id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE
+            );
+
+            CREATE TABLE public.member(
+                id bigint primary key,
+                last_name varchar,
+                first_name varchar,
+                patronymic varchar,
+                birth_date date,
+                birth_city varchar,
+                privacy privacy_type NOT NULL DEFAULT 'ONLY_FRIENDS',
+                CONSTRAINT fk_member_user
+                    FOREIGN KEY (id)
+                    REFERENCES public.user(id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE
+            );
+
+            CREATE TABLE public.moderator(
+                id bigint primary key,
+                is_admin boolean NOT NULL DEFAULT false,
+                CONSTRAINT fk_moderator_user
+                    FOREIGN KEY (id)
+                    REFERENCES public.user(id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE
+            );
+
+            CREATE TABLE public.tag(
+                id bigserial primary key,
+                name varchar NOT NULL UNIQUE
+            );
+
+            CREATE TABLE public.opportunity(
+                id bigserial primary key,
+                title varchar(120) NOT NULL,
+                short_description varchar(300) NOT NULL,
+                description text,
+                format format_type NOT NULL,
+                start_date_time timestamp NOT NULL,
+                end_date_time timestamp NOT NULL,
+                location varchar NOT NULL,
+                latitude numeric,
+                longitude numeric,
+                pictures bytea,
+                organizer_id bigint NOT NULL,
+                opportunity_type opportunity_type,
+                work_mode work_mode_type,
+                salary_min numeric,
+                salary_max numeric,
+                published_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                expires_at timestamp,
+                contacts text,
+                resources text,
+                visibility_status opportunity_visibility_status_type NOT NULL DEFAULT 'PUBLISHED',
+                CONSTRAINT fk_opportunity_organizer
+                    FOREIGN KEY (organizer_id)
+                    REFERENCES public.organizer(id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE
+            );
+
+            CREATE TABLE public.opportunity_tag(
+                opportunity_id bigint NOT NULL,
+                tag_id bigint NOT NULL,
+                CONSTRAINT fk_opportunity_tag_opportunity
+                    FOREIGN KEY (opportunity_id)
+                    REFERENCES public.opportunity(id)
+                    ON DELETE CASCADE
+                    ON UPDATE CASCADE,
+                CONSTRAINT fk_opportunity_tag_tag
+                    FOREIGN KEY (tag_id)
+                    REFERENCES public.tag(id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE,
+                PRIMARY KEY (opportunity_id, tag_id)
+            );
+
+            CREATE TABLE public.friend_request(
+                sender_id bigint NOT NULL,
+                recipient_id bigint NOT NULL,
+                status friend_request_status_type NOT NULL,
+                created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_friend_request_sender
+                    FOREIGN KEY (sender_id)
+                    REFERENCES public.member(id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE,
+                CONSTRAINT fk_friend_request_recipient
+                    FOREIGN KEY (recipient_id)
+                    REFERENCES public.member(id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE,
+                PRIMARY KEY (sender_id, recipient_id)
+            );
+
+            CREATE TABLE public.opportunity_file(
+                file_id bigserial primary key,
+                file_name varchar NOT NULL,
+                file_type varchar NOT NULL,
+                file_size bigint NOT NULL,
+                file_content bytea,
+                opportunity_id bigint NOT NULL,
+                CONSTRAINT fk_opportunity_file_opportunity
+                    FOREIGN KEY (opportunity_id)
+                    REFERENCES public.opportunity(id)
+                    ON DELETE CASCADE
+                    ON UPDATE CASCADE
+            );
+
+            CREATE TABLE public.opportunity_participant(
+                opportunity_id bigint NOT NULL,
+                member_id bigint NOT NULL,
+                CONSTRAINT fk_opportunity_participant_member
+                    FOREIGN KEY (member_id)
+                    REFERENCES public.member(id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE,
+                CONSTRAINT fk_opportunity_participant_opportunity
+                    FOREIGN KEY (opportunity_id)
+                    REFERENCES public.opportunity(id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE,
+                PRIMARY KEY (opportunity_id, member_id)
+            );
+
+            CREATE TABLE public.user_tags(
+                user_id bigint NOT NULL,
+                tag_id bigint NOT NULL,
+                CONSTRAINT fk_user_tags_user
+                    FOREIGN KEY (user_id)
+                    REFERENCES public.user(id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE,
+                CONSTRAINT fk_user_tags_tag
+                    FOREIGN KEY (tag_id)
+                    REFERENCES public.tag(id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE,
+                PRIMARY KEY (user_id, tag_id)
+            );
+
+            CREATE TABLE public.user_opportunity_interaction(
+                id bigserial primary key,
+                user_id bigint,
+                opportunity_id bigint,
+                interaction_type varchar(50),
+                created_at timestamp NOT NULL DEFAULT NOW(),
+                CONSTRAINT valid_interaction_type CHECK (interaction_type IN ('VIEW', 'FAVORITE')),
+                CONSTRAINT fk_user_interactions_user
+                    FOREIGN KEY (user_id)
+                    REFERENCES public.user(id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE,
+                CONSTRAINT fk_user_interactions_opportunity
+                    FOREIGN KEY (opportunity_id)
+                    REFERENCES public.opportunity(id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE
+            );
+
+            CREATE INDEX idx_user_opportunity_interaction_user_id ON public.user_opportunity_interaction(user_id);
+
+            CREATE TABLE public.member_organizer(
+                member_id bigint NOT NULL,
+                organizer_id bigint NOT NULL,
+                CONSTRAINT fk_member_organizer_member
+                    FOREIGN KEY (member_id)
+                    REFERENCES public.member(id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE,
+                CONSTRAINT fk_member_organizer_organizer
+                    FOREIGN KEY (organizer_id)
+                    REFERENCES public.organizer(id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE,
+                PRIMARY KEY (member_id, organizer_id)
+            );
+
+            CREATE TABLE public.opportunity_response(
+                id bigserial primary key,
+                opportunity_id bigint NOT NULL,
+                applicant_id bigint NOT NULL,
+                status opportunity_response_status_type NOT NULL DEFAULT 'APPLIED',
+                created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_opportunity_response_opportunity
+                    FOREIGN KEY (opportunity_id)
+                    REFERENCES public.opportunity(id)
+                    ON DELETE CASCADE
+                    ON UPDATE CASCADE,
+                CONSTRAINT fk_opportunity_response_applicant
+                    FOREIGN KEY (applicant_id)
+                    REFERENCES public.member(id)
+                    ON DELETE RESTRICT
+                    ON UPDATE CASCADE,
+                CONSTRAINT uq_opportunity_response UNIQUE (opportunity_id, applicant_id)
+            );
+
+            CREATE INDEX idx_opportunity_opportunity_type ON public.opportunity(opportunity_type);
+            CREATE INDEX idx_opportunity_work_mode ON public.opportunity(work_mode);
+            CREATE INDEX idx_opportunity_visibility_status ON public.opportunity(visibility_status);
+            CREATE INDEX idx_opportunity_response_opportunity_id ON public.opportunity_response(opportunity_id);
+            CREATE INDEX idx_opportunity_response_applicant_id ON public.opportunity_response(applicant_id);
+
+            INSERT INTO public.user(role, email, username, display_name, password, is_active)
+            VALUES (
+                'MODERATOR',
+                'admin@trampoline.local',
+                'admin',
+                'Администратор',
+                crypt('admin', gen_salt('bf')),
+                true
+            );
+
+            INSERT INTO public.moderator(id, is_admin)
+            SELECT id, true
+            FROM public.user
+            WHERE username = 'admin';
+            ]]>
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
