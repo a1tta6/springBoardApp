@@ -137,6 +137,7 @@ public final class UserEntity {
     public boolean blocked() { return this.blocked; }
 
     public UserEntity profile(
+        final String displayName,
         final String name,
         final String school,
         final String education,
@@ -150,7 +151,7 @@ public final class UserEntity {
             this.id,
             this.email,
             this.username,
-            this.displayName,
+            displayName,
             this.passwordHash,
             this.role,
             name,
