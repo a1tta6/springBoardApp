@@ -1,80 +1,115 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { OpportunityMap } from '../components/OpportunityMap';
 import { OpportunityCard } from '../components/OpportunityCard';
-import { opportunities as allOpportunities, tags } from '../data/mockData';
-import { Opportunity } from '../types';
+import { Company, Opportunity, Tag } from '../types';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Badge } from '../components/ui/badge';
 import { Search, LogIn, UserPlus, Map, List, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
+import { appApi } from '../api/appApi';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { currentUser, isReady } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedFormat, setSelectedFormat] = useState<string>('all');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [filteredOpportunities, setFilteredOpportunities] = useState<Opportunity[]>(allOpportunities);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [filteredOpportunities, setFilteredOpportunities] = useState<Opportunity[]>([]);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Загрузка избранного из localStorage
   useEffect(() => {
-    const savedFavorites = localStorage.getItem('favorites');
-    if (savedFavorites) {
-      setFavorites(JSON.parse(savedFavorites));
+    async function load() {
+      try {
+        const [nextTags, nextCompanies, nextOpportunities] = await Promise.all([
+          appApi.getTags(),
+          appApi.getCompanies(),
+          appApi.getOpportunities(),
+        ]);
+        setTags(nextTags);
+        setCompanies(nextCompanies);
+        setOpportunities(nextOpportunities);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Не удалось загрузить каталог');
+      } finally {
+        setIsLoading(false);
+      }
     }
+
+    void load();
   }, []);
 
-  // Фильтрация возможностей
   useEffect(() => {
-    let filtered = allOpportunities.filter((opp) => opp.status === 'active');
+    async function loadFavorites() {
+      if (currentUser?.role !== 'applicant') {
+        setFavorites([]);
+        return;
+      }
+      try {
+        const items = await appApi.getFavorites();
+        setFavorites(items.map((item) => item.id));
+      } catch {
+        setFavorites([]);
+      }
+    }
+
+    if (isReady) {
+      void loadFavorites();
+    }
+  }, [currentUser, isReady]);
+
+  useEffect(() => {
+    let filtered = opportunities.filter((item) => item.status === 'active');
 
     if (searchQuery) {
-      filtered = filtered.filter((opp) =>
-        opp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        opp.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((item) => item.title.toLowerCase().includes(query) || item.description.toLowerCase().includes(query));
     }
 
     if (selectedType !== 'all') {
-      filtered = filtered.filter((opp) => opp.type === selectedType);
+      filtered = filtered.filter((item) => item.type === selectedType);
     }
 
     if (selectedFormat !== 'all') {
-      filtered = filtered.filter((opp) => opp.workFormat === selectedFormat);
+      filtered = filtered.filter((item) => item.workFormat === selectedFormat);
     }
 
     if (selectedTags.length > 0) {
-      filtered = filtered.filter((opp) =>
-        selectedTags.every((tagId) => opp.tags.includes(tagId))
-      );
+      filtered = filtered.filter((item) => selectedTags.every((tagId) => item.tags.includes(tagId)));
     }
 
     setFilteredOpportunities(filtered);
-  }, [searchQuery, selectedType, selectedFormat, selectedTags]);
+  }, [opportunities, searchQuery, selectedType, selectedFormat, selectedTags]);
 
-  const toggleFavorite = (id: string) => {
-    const newFavorites = favorites.includes(id)
-      ? favorites.filter((fav) => fav !== id)
-      : [...favorites, id];
-    setFavorites(newFavorites);
-    localStorage.setItem('favorites', JSON.stringify(newFavorites));
+  const toggleFavorite = async (id: string) => {
+    if (currentUser?.role !== 'applicant') {
+      toast.error('Добавлять в избранное могут только соискател');
+      return;
+    }
+
+    try {
+      if (favorites.includes(id)) {
+        await appApi.removeFavorite(id);
+        setFavorites((prev) => prev.filter((item) => item !== id));
+      } else {
+        await appApi.addFavorite(id);
+        setFavorites((prev) => [...prev, id]);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Не удалось обновить избранное');
+    }
   };
 
-  const toggleTag = (tagId: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
-    );
-  };
-
-  const handleApply = (opportunityId: string) => {
+  const handleApply = async (opportunityId: string) => {
     if (!currentUser) {
       toast.error('Необходимо войти в систему');
       return;
@@ -83,7 +118,17 @@ export const HomePage: React.FC = () => {
       toast.error('Только соискатели могут откликаться на вакансии');
       return;
     }
-    toast.success('Отклик отправлен!');
+
+    try {
+      await appApi.applyToOpportunity(opportunityId);
+      toast.success('Откик отправлен!');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Не удалось откликнуться');
+    }
+  };
+
+  const toggleTag = (tagId: string) => {
+    setSelectedTags((prev) => (prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]));
   };
 
   const techTags = tags.filter((tag) => tag.category === 'technology');
@@ -91,7 +136,6 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -106,16 +150,11 @@ export const HomePage: React.FC = () => {
               {currentUser ? (
                 <Button
                   onClick={() => {
-                    const path =
-                      currentUser.role === 'applicant'
-                        ? '/dashboard/applicant'
-                        : currentUser.role === 'employer'
-                        ? '/dashboard/employer'
-                        : '/dashboard/curator';
+                    const path = currentUser.role === 'applicant' ? '/dashboard/applicant' : currentUser.role === 'employer' ? '/dashboard/employer' : '/dashboard/curator';
                     navigate(path);
                   }}
                 >
-                  Личный кабинет
+                  Р›РёС‡РЅС‹Р№ РєР°Р±РёРЅРµС‚
                 </Button>
               ) : (
                 <>
@@ -134,21 +173,14 @@ export const HomePage: React.FC = () => {
         </div>
       </header>
 
-      {/* Filters */}
       <div className="bg-white border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="space-y-4">
-            {/* Search and Selects */}
             <div className="flex gap-3 flex-wrap">
               <div className="flex-1 min-w-[200px]">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Поиск вакансий, стажировок, мероприятий..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
+                  <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" placeholder="Поиск..." />
                 </div>
               </div>
 
@@ -178,35 +210,21 @@ export const HomePage: React.FC = () => {
               </Select>
 
               <div className="flex gap-2">
-                <Button
-                  variant={viewMode === 'map' ? 'default' : 'outline'}
-                  size="icon"
-                  onClick={() => setViewMode('map')}
-                >
+                <Button variant={viewMode === 'map' ? 'default' : 'outline'} size="icon" onClick={() => setViewMode('map')}>
                   <Map className="w-4 h-4" />
                 </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="icon"
-                  onClick={() => setViewMode('list')}
-                >
+                <Button variant={viewMode === 'list' ? 'default' : 'outline'} size="icon" onClick={() => setViewMode('list')}>
                   <List className="w-4 h-4" />
                 </Button>
               </div>
             </div>
 
-            {/* Tags */}
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">Технологии:</span>
                 <div className="flex flex-wrap gap-2">
                   {techTags.map((tag) => (
-                    <Badge
-                      key={tag.id}
-                      variant={selectedTags.includes(tag.id) ? 'default' : 'outline'}
-                      className="cursor-pointer"
-                      onClick={() => toggleTag(tag.id)}
-                    >
+                    <Badge key={tag.id} variant={selectedTags.includes(tag.id) ? 'default' : 'outline'} className="cursor-pointer" onClick={() => toggleTag(tag.id)}>
                       {tag.name}
                       {selectedTags.includes(tag.id) && <X className="w-3 h-3 ml-1" />}
                     </Badge>
@@ -218,12 +236,7 @@ export const HomePage: React.FC = () => {
                 <span className="text-sm font-medium">Уровень:</span>
                 <div className="flex flex-wrap gap-2">
                   {levelTags.map((tag) => (
-                    <Badge
-                      key={tag.id}
-                      variant={selectedTags.includes(tag.id) ? 'default' : 'outline'}
-                      className="cursor-pointer"
-                      onClick={() => toggleTag(tag.id)}
-                    >
+                    <Badge key={tag.id} variant={selectedTags.includes(tag.id) ? 'default' : 'outline'} className="cursor-pointer" onClick={() => toggleTag(tag.id)}>
                       {tag.name}
                       {selectedTags.includes(tag.id) && <X className="w-3 h-3 ml-1" />}
                     </Badge>
@@ -232,7 +245,6 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Results count */}
             <div className="text-sm text-gray-600">
               Найдено возможностей: <span className="font-semibold">{filteredOpportunities.length}</span>
             </div>
@@ -240,18 +252,12 @@ export const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Content */}
       <div className="container mx-auto px-4 py-6">
-        {viewMode === 'map' ? (
+        {isLoading ? (
+          <div className="text-center py-12 text-gray-500">Загрузка каталога...</div>
+        ) : viewMode === 'map' ? (
           <div className="h-[600px] rounded-lg overflow-hidden shadow-lg">
-            <OpportunityMap
-              opportunities={filteredOpportunities}
-              favorites={favorites}
-              onOpportunityClick={(opportunity) => {
-                // В будущем можно открывать модальное окно с деталями
-                console.log('Selected opportunity:', opportunity);
-              }}
-            />
+            <OpportunityMap opportunities={filteredOpportunities} companies={companies} favorites={favorites} />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -259,30 +265,14 @@ export const HomePage: React.FC = () => {
               <OpportunityCard
                 key={opportunity.id}
                 opportunity={opportunity}
+                companies={companies}
+                tags={tags}
                 isFavorite={favorites.includes(opportunity.id)}
                 onToggleFavorite={toggleFavorite}
                 onApply={handleApply}
                 isAuthenticated={!!currentUser && currentUser.role === 'applicant'}
               />
             ))}
-          </div>
-        )}
-
-        {filteredOpportunities.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">Не найдено возможностей по вашему запросу</p>
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedType('all');
-                setSelectedFormat('all');
-                setSelectedTags([]);
-              }}
-            >
-              Сбросить фильтры
-            </Button>
           </div>
         )}
       </div>

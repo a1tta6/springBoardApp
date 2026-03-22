@@ -23,39 +23,30 @@ export const RegisterPage: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Демонстрационная задержка
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const success = register(email, password, displayName, role);
-
-    if (success) {
+    try {
+      const user = await register(email, password, displayName, role);
       toast.success('Регистрация успешна! Добро пожаловать!');
-      
-      if (role === 'employer') {
+      if (user?.role === 'employer') {
         toast.info('Для публикации вакансий требуется верификация компании');
       }
-
-      // Перенаправление в зависимости от роли
-      if (role === 'applicant') {
+      if (user?.role === 'applicant') {
         navigate('/dashboard/applicant');
-      } else if (role === 'employer') {
+      } else if (user?.role === 'employer') {
         navigate('/dashboard/employer');
+      } else {
+        navigate('/');
       }
-    } else {
-      toast.error('Пользователь с таким email уже существует');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Пользователь с таким email уже существует');
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/')}
-          className="mb-4"
-        >
+        <Button variant="ghost" onClick={() => navigate('/')} className="mb-4">
           <ArrowLeft className="w-4 h-4 mr-2" />
           На главную
         </Button>
@@ -100,43 +91,17 @@ export const RegisterPage: React.FC = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="displayName">Отображаемое имя</Label>
-                <Input
-                  id="displayName"
-                  placeholder={role === 'applicant' ? 'Иван Петров' : 'Название компании'}
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  required
-                />
+                <Input id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder={role === 'employer' ? 'hr@company.ru (корпоративный)' : 'example@mail.ru'}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-                {role === 'employer' && (
-                  <p className="text-xs text-gray-500">
-                    Для работодателей рекомендуется корпоративная почта для верификации
-                  </p>
-                )}
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password">Пароль</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Минимум 6 символов"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
+                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
               </div>
 
               {role === 'employer' && (

@@ -1,12 +1,15 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, UserRole } from '../types';
-import { users } from '../data/mockData';
+import { authApi } from '../api/authApi';
 
 interface AuthContextType {
   currentUser: User | null;
-  login: (email: string, password: string) => boolean;
-  logout: () => void;
-  register: (email: string, password: string, displayName: string, role: UserRole) => boolean;
+  isReady: boolean;
+  login: (email: string, password: string) => Promise<User | null>;
+  logout: () => Promise<void>;
+  register: (email: string, password: string, displayName: string, role: UserRole) => Promise<User | null>;
+  refreshUser: () => Promise<User | null>;
+  syncUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,53 +28,63 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
-  const login = (email: string, password: string): boolean => {
-    // Простая проверка для демонстрации
-    const user = users.find(u => u.email === email);
-    if (user) {
+  const syncUser = (user: User | null) => {
+    setCurrentUser(user);
+  };
+
+  const refreshUser = async (): Promise<User | null> => {
+    try {
+      const user = await authApi.me();
       setCurrentUser(user);
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      return true;
+      return user;
+    } catch {
+      try {
+        await authApi.refresh();
+        const user = await authApi.me();
+        setCurrentUser(user);
+        return user;
+      } catch {
+        setCurrentUser(null);
+        return null;
+      }
     }
-    return false;
   };
 
-  const logout = () => {
-    setCurrentUser(null);
-    localStorage.removeItem('currentUser');
+  const login = async (email: string, password: string): Promise<User | null> => {
+    const user = await authApi.login(email, password);
+    setCurrentUser(user);
+    return user;
   };
 
-  const register = (email: string, password: string, displayName: string, role: UserRole): boolean => {
-    // Проверка, что пользователь не существует
-    const existingUser = users.find(u => u.email === email);
-    if (existingUser) {
-      return false;
+  const logout = async (): Promise<void> => {
+    try {
+      await authApi.logout();
+    } finally {
+      setCurrentUser(null);
     }
-
-    const newUser: User = {
-      id: `u${users.length + 1}`,
-      email,
-      displayName,
-      role,
-    };
-
-    users.push(newUser);
-    setCurrentUser(newUser);
-    localStorage.setItem('currentUser', JSON.stringify(newUser));
-    return true;
   };
 
-  // Проверка сохраненного пользователя при загрузке
-  React.useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser));
-    }
+  const register = async (
+    email: string,
+    password: string,
+    displayName: string,
+    role: UserRole
+  ): Promise<User | null> => {
+    const user = await authApi.register({ email, password, displayName, role });
+    setCurrentUser(user);
+    return user;
+  };
+
+  useEffect(() => {
+    void refreshUser().finally(() => {
+      setIsReady(true);
+    });
   }, []);
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, logout, register }}>
+    <AuthContext.Provider value={{ currentUser, isReady, login, logout, register, refreshUser, syncUser }}>
       {children}
     </AuthContext.Provider>
   );

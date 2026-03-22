@@ -19,39 +19,29 @@ export const LoginPage: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Демонстрационная задержка
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const success = login(email, password);
-
-    if (success) {
+    try {
+      const user = await login(email, password);
       toast.success('Вход выполнен успешно!');
-      // Определяем куда перенаправить пользователя
-      const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-      if (user.role === 'applicant') {
+      if (user?.role === 'applicant') {
         navigate('/dashboard/applicant');
-      } else if (user.role === 'employer') {
+      } else if (user?.role === 'employer') {
         navigate('/dashboard/employer');
-      } else if (user.role === 'curator') {
+      } else if (user?.role === 'curator') {
         navigate('/dashboard/curator');
       } else {
         navigate('/');
       }
-    } else {
-      toast.error('Неверный email или пароль');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Неверный email или пароль');
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/')}
-          className="mb-4"
-        >
+        <Button variant="ghost" onClick={() => navigate('/')} className="mb-4">
           <ArrowLeft className="w-4 h-4 mr-2" />
           На главную
         </Button>
@@ -69,26 +59,12 @@ export const LoginPage: React.FC = () => {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="example@mail.ru"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                <Input id="email" type="email" placeholder="example@mail.ru" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password">Пароль</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
@@ -109,11 +85,7 @@ export const LoginPage: React.FC = () => {
 
               <p className="text-sm text-center text-gray-600">
                 Нет аккаунта?{' '}
-                <button
-                  type="button"
-                  onClick={() => navigate('/register')}
-                  className="text-blue-600 hover:underline"
-                >
+                <button type="button" onClick={() => navigate('/register')} className="text-blue-600 hover:underline">
                   Зарегистрироваться
                 </button>
               </p>

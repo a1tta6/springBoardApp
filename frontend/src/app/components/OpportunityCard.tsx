@@ -1,6 +1,5 @@
 import React from 'react';
-import { Opportunity } from '../types';
-import { companies, tags } from '../data/mockData';
+import { Company, Opportunity, Tag } from '../types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -8,6 +7,8 @@ import { MapPin, Building2, Calendar, Banknote, Briefcase, Star } from 'lucide-r
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
+  companies: Company[];
+  tags: Tag[];
   isFavorite?: boolean;
   onToggleFavorite?: (id: string) => void;
   onApply?: (id: string) => void;
@@ -29,12 +30,14 @@ const workFormatLabels: Record<string, string> = {
 
 export const OpportunityCard: React.FC<OpportunityCardProps> = ({
   opportunity,
+  companies,
+  tags,
   isFavorite = false,
   onToggleFavorite,
   onApply,
   isAuthenticated = false,
 }) => {
-  const company = companies.find((c) => c.id === opportunity.companyId);
+  const company = companies.find((item) => item.id === opportunity.companyId);
   const opportunityTags = tags.filter((tag) => opportunity.tags.includes(tag.id));
 
   return (
@@ -79,7 +82,7 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
             <div className="flex items-center gap-2 text-sm">
               <Banknote className="w-4 h-4 text-gray-500" />
               <span>
-                {opportunity.salary.min?.toLocaleString()} - {opportunity.salary.max?.toLocaleString()} ₽
+                {opportunity.salary.min?.toLocaleString()} - {opportunity.salary.max?.toLocaleString()} {opportunity.salary.currency}
               </span>
             </div>
           )}
