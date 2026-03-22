@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
-import { Application, Company, Opportunity, User } from '../types';
+import { Application, Company, Opportunity, User, statusMap } from '../types';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -53,7 +53,7 @@ export const EmployerDashboard: React.FC = () => {
         setApplications(nextApplications);
         setApplicants(nextApplicants);
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'Failed to load employer data');
+        toast.error(error instanceof Error ? error.message : 'Ошибка при загрузке профиля работодателя');
       } finally {
         setIsLoading(false);
       }
@@ -73,9 +73,9 @@ export const EmployerDashboard: React.FC = () => {
     try {
       const created = await appApi.createEmployerOpportunity(form);
       setOpportunities((prev) => [created, ...prev]);
-      toast.success('Opportunity created');
+      toast.success('Возможность создана');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to create opportunity');
+      toast.error(error instanceof Error ? error.message : 'Ошибка при создании возможности');
     }
   };
 
@@ -83,9 +83,9 @@ export const EmployerDashboard: React.FC = () => {
     try {
       await appApi.updateEmployerApplicationStatus(applicationId, status);
       setApplications((prev) => prev.map((item) => (item.id === applicationId ? { ...item, status: status as Application['status'] } : item)));
-      toast.success('Application updated');
+      toast.success('Отлик обновлен');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to update application');
+      toast.error(error instanceof Error ? error.message : 'Ошибка при обновлении отклика');
     }
   };
 
@@ -94,7 +94,7 @@ export const EmployerDashboard: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center">
         <Card>
           <CardContent className="pt-6">
-            <Button onClick={() => navigate('/')}>Back home</Button>
+            <Button onClick={() => navigate('/')}>На главную</Button>
           </CardContent>
         </Card>
       </div>
@@ -109,11 +109,11 @@ export const EmployerDashboard: React.FC = () => {
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center" onClick={() => navigate('/')}>
               <span className="text-white font-bold text-xl">T</span>
             </div>
-            <h1 className="text-xl font-bold">Employer Dashboard</h1>
+            <h1 className="text-xl font-bold">Профиль работодателя</h1>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => navigate('/')}><Home className="w-4 h-4 mr-2" />Home</Button>
-            <Button variant="outline" onClick={() => void handleLogout()}><LogOut className="w-4 h-4 mr-2" />Logout</Button>
+            <Button variant="outline" onClick={() => navigate('/')}><Home className="w-4 h-4 mr-2" />На главную</Button>
+            <Button variant="outline" onClick={() => void handleLogout()}><LogOut className="w-4 h-4 mr-2" />Выход</Button>
           </div>
         </div>
       </header>
@@ -121,39 +121,39 @@ export const EmployerDashboard: React.FC = () => {
       <div className="container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
         <Card className="lg:col-span-1">
           <CardContent className="pt-6 space-y-2">
-            <Button variant={activeTab === 'company' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('company')}><Building2 className="w-4 h-4 mr-2" />Company</Button>
-            <Button variant={activeTab === 'opportunities' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('opportunities')}><Briefcase className="w-4 h-4 mr-2" />Opportunities</Button>
-            <Button variant={activeTab === 'applications' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('applications')}><Users className="w-4 h-4 mr-2" />Applications</Button>
+            <Button variant={activeTab === 'company' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('company')}><Building2 className="w-4 h-4 mr-2" />Компания</Button>
+            <Button variant={activeTab === 'opportunities' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('opportunities')}><Briefcase className="w-4 h-4 mr-2" />Возможности</Button>
+            <Button variant={activeTab === 'applications' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('applications')}><Users className="w-4 h-4 mr-2" />Отклики</Button>
           </CardContent>
         </Card>
 
         <div className="lg:col-span-3">
           {activeTab === 'company' && (
             <Card>
-              <CardHeader><CardTitle>Company</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Компания</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 <Input value={company?.name || ''} disabled />
                 <Input value={company?.industry || ''} disabled />
                 <Textarea value={company?.description || ''} disabled rows={4} />
-                <Badge variant={company?.verified ? 'default' : 'secondary'}>{company?.verified ? 'verified' : 'pending'}</Badge>
+                <Badge variant={company?.verified ? 'default' : 'secondary'}>{company?.verified ? 'Верификация пройдена' : 'Верификация в обработке'}</Badge>
               </CardContent>
             </Card>
           )}
 
           {activeTab === 'opportunities' && (
             <Card>
-              <CardHeader><CardTitle>Opportunities</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Возможности</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2"><Label>Title</Label><Input value={form.title} onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))} /></div>
-                  <div className="space-y-2"><Label>City</Label><Input value={form.city} onChange={(e) => setForm((prev) => ({ ...prev, city: e.target.value }))} /></div>
+                  <div className="space-y-2"><Label>Название</Label><Input value={form.title} onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))} /></div>
+                  <div className="space-y-2"><Label>Город</Label><Input value={form.city} onChange={(e) => setForm((prev) => ({ ...prev, city: e.target.value }))} /></div>
                 </div>
-                <div className="space-y-2"><Label>Description</Label><Textarea value={form.description} onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))} rows={4} /></div>
-                <div className="space-y-2"><Label>Requirements</Label><Textarea value={form.requirements} onChange={(e) => setForm((prev) => ({ ...prev, requirements: e.target.value }))} rows={3} /></div>
-                <Button onClick={() => void handleCreate()} disabled={!company?.verified}>Create</Button>
+                <div className="space-y-2"><Label>Описание</Label><Textarea value={form.description} onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))} rows={4} /></div>
+                <div className="space-y-2"><Label>Требуемые навыки</Label><Textarea value={form.requirements} onChange={(e) => setForm((prev) => ({ ...prev, requirements: e.target.value }))} rows={3} /></div>
+                <Button onClick={() => void handleCreate()} disabled={!company?.verified}>Создать</Button>
                 <div className="space-y-3">
                   {isLoading ? (
-                    <p className="text-gray-500">Loading...</p>
+                    <p className="text-gray-500">Загрузка...</p>
                   ) : opportunities.map((opportunity) => (
                     <div key={opportunity.id} className="border rounded-lg p-4">
                       <h4 className="font-semibold">{opportunity.title}</h4>
@@ -168,10 +168,10 @@ export const EmployerDashboard: React.FC = () => {
 
           {activeTab === 'applications' && (
             <Card>
-              <CardHeader><CardTitle>Applications</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Отклики</CardTitle></CardHeader>
               <CardContent>
                 {isLoading ? (
-                  <p className="text-gray-500">Loading...</p>
+                  <p className="text-gray-500">Загрузка...</p>
                 ) : (
                   <div className="space-y-3">
                     {applications.map((app) => {
@@ -184,12 +184,12 @@ export const EmployerDashboard: React.FC = () => {
                               <h4 className="font-semibold">{applicant?.displayName || applicant?.email}</h4>
                               <p className="text-sm text-gray-500">{opportunity?.title}</p>
                             </div>
-                            <Badge>{app.status}</Badge>
+                            <Badge>{statusMap[app.status]}</Badge>
                           </div>
                           <div className="flex gap-2 mt-3">
-                            <Button size="sm" onClick={() => void handleStatus(app.id, 'accepted')}><CheckCircle className="w-4 h-4 mr-1" />Accept</Button>
-                            <Button size="sm" variant="outline" onClick={() => void handleStatus(app.id, 'reserved')}><Clock className="w-4 h-4 mr-1" />Reserve</Button>
-                            <Button size="sm" variant="destructive" onClick={() => void handleStatus(app.id, 'rejected')}><XCircle className="w-4 h-4 mr-1" />Reject</Button>
+                            <Button size="sm" onClick={() => void handleStatus(app.id, 'accepted')}><CheckCircle className="w-4 h-4 mr-1" />Принять</Button>
+                            <Button size="sm" variant="outline" onClick={() => void handleStatus(app.id, 'reserved')}><Clock className="w-4 h-4 mr-1" />В резерв</Button>
+                            <Button size="sm" variant="destructive" onClick={() => void handleStatus(app.id, 'rejected')}><XCircle className="w-4 h-4 mr-1" />Отклонить</Button>
                           </div>
                         </div>
                       );

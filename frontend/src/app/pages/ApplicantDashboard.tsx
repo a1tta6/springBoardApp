@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
-import { Application, Company, Opportunity } from '../types';
+import { Application, Company, Opportunity, statusMap } from '../types';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -231,7 +231,7 @@ export const ApplicantDashboard: React.FC = () => {
                                                         </div>
                                                         <div className="flex items-center gap-2">
                                                             {getStatusIcon(app.status)}
-                                                            <Badge>{getStatusRuName(app.status)}</Badge>
+                                                            <Badge>{statusMap[app.status]}</Badge>
                                                         </div>
                                                     </div>
                                                     {app.message && <p className="text-sm text-gray-600 mt-2">{app.message}</p>}

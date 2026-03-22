@@ -93,4 +93,13 @@ export interface Application {
   status: ApplicationStatus;
   appliedDate: Date;
   message?: string;
+
 }
+export const statusMap: Record<ApplicationStatus, string> = {
+  accepted: 'Принят',
+  rejected: 'Отклонен',
+  pending: 'В обработке',
+  reserved: 'В резерве'
+};
+
+
