@@ -48,7 +48,7 @@ export const LoginPage: React.FC = () => {
 
         <Card>
           <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4" onClick={() => navigate('/')}>
               <span className="text-white font-bold text-2xl">Т</span>
             </div>
             <CardTitle className="text-2xl">Вход в систему</CardTitle>
