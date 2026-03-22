@@ -121,7 +121,7 @@ export const HomePage: React.FC = () => {
 
     try {
       await appApi.applyToOpportunity(opportunityId);
-      toast.success('Откик отправлен!');
+      toast.success('Отклик отправлен!');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Не удалось откликнуться');
     }
@@ -154,7 +154,7 @@ export const HomePage: React.FC = () => {
                     navigate(path);
                   }}
                 >
-                  Р›РёС‡РЅС‹Р№ РєР°Р±РёРЅРµС‚
+                  Личный кабинет
                 </Button>
               ) : (
                 <>
