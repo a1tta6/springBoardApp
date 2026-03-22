@@ -67,6 +67,7 @@ public final class AppService {
 
     public ViewJson.User profile(final ViewJson.ProfileUpdate form) {
         final UserEntity user = this.current.user().profile(
+            form.displayName(),
             form.fullName(),
             form.university(),
             form.course(),

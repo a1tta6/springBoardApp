@@ -24,6 +24,7 @@ export const ApplicantDashboard: React.FC = () => {
     const [favorites, setFavorites] = useState<Opportunity[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [profile, setProfile] = useState({
+        displayName: '',
         fullName: '',
         university: '',
         course: '',
@@ -43,6 +44,7 @@ export const ApplicantDashboard: React.FC = () => {
             return;
         }
         setProfile({
+            displayName: currentUser.displayName || '',
             fullName: currentUser.fullName || '',
             university: currentUser.university || '',
             course: currentUser.course || '',
@@ -91,6 +93,7 @@ export const ApplicantDashboard: React.FC = () => {
     const handleSaveProfile = async () => {
         try {
             const user = await appApi.updateApplicantProfile({
+                displayName: profile.displayName,
                 fullName: profile.fullName,
                 university: profile.university,
                 course: profile.course,
@@ -195,6 +198,7 @@ export const ApplicantDashboard: React.FC = () => {
                             <CardHeader><CardTitle>Профиль</CardTitle></CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2"><Label>Отображаемое имя</Label><Input value={profile.displayName} onChange={(e) => setProfile((prev) => ({ ...prev, displayName: e.target.value }))} /></div>
                                     <div className="space-y-2"><Label>Полное имя</Label><Input value={profile.fullName} onChange={(e) => setProfile((prev) => ({ ...prev, fullName: e.target.value }))} /></div>
                                     <div className="space-y-2"><Label>Учебное заведение</Label><Input value={profile.university} onChange={(e) => setProfile((prev) => ({ ...prev, university: e.target.value }))} /></div>
                                     <div className="space-y-2"><Label>Курс</Label><Input value={profile.course} onChange={(e) => setProfile((prev) => ({ ...prev, course: e.target.value }))} /></div>

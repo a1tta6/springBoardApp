@@ -105,6 +105,7 @@ public final class ViewJson {
     }
 
     public record ProfileUpdate(
+        String displayName,
         String fullName,
         String university,
         String course,

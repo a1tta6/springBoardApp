@@ -114,6 +114,7 @@ public final class DataSeed implements CommandLineRunner {
             this.encoder.encode("student123"),
             UserRole.APPLICANT
         ).profile(
+            "Иван Петров",
             "Петров Иван Сергеевич",
             "МГУ им. М.В. Ломоносова",
             "3 курс",
