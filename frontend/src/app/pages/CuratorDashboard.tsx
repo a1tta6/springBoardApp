@@ -103,7 +103,7 @@ export const CuratorDashboard: React.FC = () => {
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center" onClick={() => navigate('/')}>
               <Shield className="w-6 h-6 text-white" />
             </div>
             <h1 className="text-xl font-bold">Curator Dashboard</h1>

@@ -6,7 +6,7 @@
       http://www.liquibase.org/xml/ns/dbchangelog
       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
-    <changeSet id="001-create-users" author="codex">
+    <changeSet id="001-create-users" author="Eset Shabakhov">
         <createTable tableName="users">
             <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
@@ -47,7 +47,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="002-create-companies" author="codex">
+    <changeSet id="002-create-companies" author="Eset Shabakhov">
         <createTable tableName="companies">
             <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
@@ -74,7 +74,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="003-create-tags" author="codex">
+    <changeSet id="003-create-tags" author="Eset Shabakhov">
         <createTable tableName="tags">
             <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
@@ -88,7 +88,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="004-create-opportunities" author="codex">
+    <changeSet id="004-create-opportunities" author="Eset Shabakhov">
         <createTable tableName="opportunities">
             <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
@@ -138,7 +138,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="005-create-applications" author="codex">
+    <changeSet id="005-create-applications" author="Eset Shabakhov">
         <createTable tableName="applications">
             <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
@@ -160,7 +160,7 @@
         <addUniqueConstraint tableName="applications" columnNames="opportunity_id, applicant_id" constraintName="uq_applications_opportunity_applicant"/>
     </changeSet>
 
-    <changeSet id="006-create-favorites" author="codex">
+    <changeSet id="006-create-favorites" author="Eset Shabakhov">
         <createTable tableName="favorites">
             <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
