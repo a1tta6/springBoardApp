@@ -41,6 +41,7 @@ export const appApi = {
   },
 
   updateApplicantProfile(data: {
+    displayName: string;
     fullName: string;
     university: string;
     course: string;
