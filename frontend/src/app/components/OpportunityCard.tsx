@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Company, Opportunity, Tag } from '../types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { MapPin, Building2, Calendar, Banknote, Briefcase, Star, ArrowRight, CheckCircle, XCircle } from 'lucide-react';
+import { MapPin, Building2, Calendar, Banknote, Briefcase, Star, ArrowRight, XCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
+import { Textarea } from './ui/textarea';
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
@@ -14,6 +16,7 @@ interface OpportunityCardProps {
   hasApplied?: boolean;
   onToggleFavorite?: (id: string) => void;
   onApply?: (id: string) => void;
+  onApplyWithMessage?: (id: string, message: string) => void;
   isAuthenticated?: boolean;
   onViewDetails?: (id: string) => void;
 }
@@ -39,12 +42,19 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
   hasApplied = false,
   onToggleFavorite,
   onApply,
+  onApplyWithMessage,
   isAuthenticated = false,
   onViewDetails,
 }) => {
   const navigate = useNavigate();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [coverLetter, setCoverLetter] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const company = companies.find((item) => item.id === opportunity.companyId);
   const opportunityTags = tags.filter((tag) => opportunity.tags.includes(tag.id));
+
+  const requiresCoverLetter = opportunity.type === 'internship' || opportunity.type === 'vacancy';
 
   const handleViewDetails = () => {
     if (onViewDetails) {
@@ -52,6 +62,32 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
     } else {
       navigate(`/opportunity/${opportunity.id}`);
     }
+  };
+
+  const handleApplyClick = () => {
+    if (requiresCoverLetter && onApplyWithMessage) {
+      setIsDialogOpen(true);
+    } else if (onApply) {
+      onApply(opportunity.id);
+    }
+  };
+
+  const handleSubmitApplication = async () => {
+    if (onApplyWithMessage) {
+      setIsSubmitting(true);
+      try {
+        await onApplyWithMessage(opportunity.id, coverLetter);
+        setIsDialogOpen(false);
+        setCoverLetter('');
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
+  const handleCancelDialog = () => {
+    setIsDialogOpen(false);
+    setCoverLetter('');
   };
 
   return (
@@ -137,18 +173,43 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
               Отменить отклик
             </Button>
           )}
-          {onApply && isAuthenticated && !hasApplied && (
-            <Button onClick={() => onApply(opportunity.id)}>
+          {(onApply || onApplyWithMessage) && isAuthenticated && !hasApplied && (
+            <Button onClick={handleApplyClick}>
               Откликнуться
             </Button>
           )}
-          {onApply && !isAuthenticated && (
+          {(onApply || onApplyWithMessage) && !isAuthenticated && (
             <Button variant="outline" disabled>
               Войдите для отклика
             </Button>
           )}
         </CardFooter>
       )}
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Сопроводительное письмо</DialogTitle>
+            <DialogDescription>
+              Расскажите о себе и почему вас заинтересовала эта позиция
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={coverLetter}
+            onChange={(e) => setCoverLetter(e.target.value)}
+            placeholder="Опишите ваш опыт и мотивацию..."
+            className="min-h-[150px]"
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelDialog}>
+              Отмена
+            </Button>
+            <Button onClick={handleSubmitApplication} disabled={isSubmitting}>
+              {isSubmitting ? 'Отправка...' : 'Отправить'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

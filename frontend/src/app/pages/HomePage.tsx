@@ -156,6 +156,25 @@ export const HomePage: React.FC = () => {
     }
   };
 
+  const handleApplyWithMessage = async (opportunityId: string, message: string) => {
+    if (!currentUser) {
+      toast.error('Необходимо войти в систему');
+      return;
+    }
+    if (currentUser.role !== 'applicant') {
+      toast.error('Только соискатели могут откликаться на вакансии');
+      return;
+    }
+
+    try {
+      await appApi.applyToOpportunity(opportunityId, message);
+      setAppliedOpportunities((prev) => [...prev, opportunityId]);
+      toast.success('Отклик отправлен!');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Не удалось отправить отклик');
+    }
+  };
+
   const toggleTag = (tagId: string) => {
     setSelectedTags((prev) => (prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]));
   };
@@ -300,6 +319,7 @@ export const HomePage: React.FC = () => {
                 hasApplied={appliedOpportunities.includes(opportunity.id)}
                 onToggleFavorite={toggleFavorite}
                 onApply={handleApply}
+                onApplyWithMessage={handleApplyWithMessage}
                 isAuthenticated={!!currentUser && currentUser.role === 'applicant'}
               />
             ))}
