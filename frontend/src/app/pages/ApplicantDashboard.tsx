@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { Application, Company, Opportunity, statusMap } from '../types';
 import { Button } from '../components/ui/button';
@@ -16,6 +16,7 @@ import { appApi } from '../api/appApi';
 
 export const ApplicantDashboard: React.FC = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { currentUser, logout, syncUser } = useAuth();
     const [activeTab, setActiveTab] = useState<'profile' | 'applications' | 'favorites' | 'settings'>('profile');
     const [applications, setApplications] = useState<Application[]>([]);
@@ -59,6 +60,13 @@ export const ApplicantDashboard: React.FC = () => {
             showResume: currentUser.privacySettings?.showResume ?? true,
         });
     }, [currentUser]);
+
+    useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab === 'applications' || tab === 'favorites') {
+            setActiveTab(tab);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         async function load() {
@@ -227,7 +235,11 @@ export const ApplicantDashboard: React.FC = () => {
                                             const opportunity = opportunities.find((item) => item.id === app.opportunityId);
                                             const company = companies.find((item) => item.id === opportunity?.companyId);
                                             return (
-                                                <div key={app.id} className="border rounded-lg p-4">
+                                                <div 
+                                                    key={app.id} 
+                                                    className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                                                    onClick={() => navigate(`/opportunity/${app.opportunityId}?from=applications`)}
+                                                >
                                                     <div className="flex justify-between items-start">
                                                         <div>
                                                             <h4 className="font-semibold">{opportunity?.title}</h4>
@@ -261,10 +273,14 @@ export const ApplicantDashboard: React.FC = () => {
                                         {favorites.map((opportunity) => {
                                             const company = companies.find((item) => item.id === opportunity.companyId);
                                             return (
-                                                <div key={opportunity.id} className="border rounded-lg p-4">
+                                                <div 
+                                                    key={opportunity.id} 
+                                                    className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                                                    onClick={() => navigate(`/opportunity/${opportunity.id}?from=favorites`)}
+                                                >
                                                     <h4 className="font-semibold">{opportunity.title}</h4>
                                                     <p className="text-sm text-gray-500">{company?.name}</p>
-                                                    <p className="text-sm text-gray-600 mt-2">{opportunity.description}</p>
+                                                    <p className="text-sm text-gray-600 mt-2 line-clamp-2">{opportunity.description}</p>
                                                 </div>
                                             );
                                         })}
