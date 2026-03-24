@@ -65,6 +65,13 @@ public final class AppService {
             .toList();
     }
 
+    public ViewJson.Opportunity opportunity(final String opportunityId) {
+        return this.view.opportunity(
+            this.opportunities.findById(UUID.fromString(opportunityId))
+                .orElseThrow(() -> new MissingEntityException("Opportunity is missing"))
+        );
+    }
+
     public ViewJson.User profile(final ViewJson.ProfileUpdate form) {
         final UserEntity user = this.current.user().profile(
             form.displayName(),
@@ -97,6 +104,20 @@ public final class AppService {
             throw new IllegalStateException("Application already exists");
         }
         this.applications.save(new ApplicationEntity(opportunity, user.id(), ApplicationStatus.PENDING, Instant.now(), form.message()));
+    }
+
+    public void cancelApplication(final String opportunityId) {
+        final UserEntity user = this.current.user();
+        final UUID opportunity = UUID.fromString(opportunityId);
+        final var application = this.applications.findByOpportunityIdAndApplicantId(opportunity, user.id())
+            .orElseThrow(() -> new MissingEntityException("Application is missing"));
+        this.applications.delete(application.id());
+    }
+
+    public boolean hasApplied(final String opportunityId) {
+        final UserEntity user = this.current.user();
+        final UUID opportunity = UUID.fromString(opportunityId);
+        return this.applications.findByOpportunityIdAndApplicantId(opportunity, user.id()).isPresent();
     }
 
     public List<ViewJson.Opportunity> favorites() {

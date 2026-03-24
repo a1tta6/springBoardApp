@@ -2,6 +2,7 @@ package org.isNotNull.springBoardApp.api;
 
 import org.isNotNull.springBoardApp.service.AppService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,5 +37,10 @@ public final class PublicEndpoint {
     @GetMapping("/opportunities")
     public List<ViewJson.Opportunity> opportunities() {
         return this.app.opportunities();
+    }
+
+    @GetMapping("/opportunities/{opportunityId}")
+    public ViewJson.Opportunity opportunity(@PathVariable final String opportunityId) {
+        return this.app.opportunity(opportunityId);
     }
 }

@@ -40,6 +40,14 @@ export const appApi = {
     return (await request<ApiOpportunity[]>('/v1/opportunities')).map(opportunity);
   },
 
+  async getOpportunity(id: string) {
+    return opportunity(await request<ApiOpportunity>(`/v1/opportunities/${id}`));
+  },
+
+  async getHasApplied(opportunityId: string): Promise<boolean> {
+    return request<boolean>(`/v1/applicant/opportunities/${opportunityId}/applied`);
+  },
+
   updateApplicantProfile(data: {
     displayName: string;
     fullName: string;
@@ -72,6 +80,12 @@ export const appApi = {
     return request<void>(`/v1/applicant/opportunities/${opportunityId}/applications`, {
       method: 'POST',
       body: JSON.stringify({ message }),
+    });
+  },
+
+  cancelApplication(opportunityId: string) {
+    return request<void>(`/v1/applicant/opportunities/${opportunityId}/applications`, {
+      method: 'DELETE',
     });
   },
 

@@ -5,12 +5,17 @@ import { RegisterPage } from './pages/RegisterPage';
 import { ApplicantDashboard } from './pages/ApplicantDashboard';
 import { EmployerDashboard } from './pages/EmployerDashboard';
 import { CuratorDashboard } from './pages/CuratorDashboard';
+import { OpportunityPage } from './pages/OpportunityPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export const router = createBrowserRouter([
   {
     path: '/',
     Component: HomePage,
+  },
+  {
+    path: '/opportunity/:id',
+    Component: OpportunityPage,
   },
   {
     path: '/login',

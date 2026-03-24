@@ -23,6 +23,7 @@ export const HomePage: React.FC = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [appliedOpportunities, setAppliedOpportunities] = useState<string[]>([]);
   const [filteredOpportunities, setFilteredOpportunities] = useState<Opportunity[]>([]);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [isLoading, setIsLoading] = useState(true);
@@ -64,6 +65,25 @@ export const HomePage: React.FC = () => {
 
     if (isReady) {
       void loadFavorites();
+    }
+  }, [currentUser, isReady]);
+
+  useEffect(() => {
+    async function loadApplications() {
+      if (currentUser?.role !== 'applicant') {
+        setAppliedOpportunities([]);
+        return;
+      }
+      try {
+        const apps = await appApi.getApplicantApplications();
+        setAppliedOpportunities(apps.map((app) => app.opportunityId));
+      } catch {
+        setAppliedOpportunities([]);
+      }
+    }
+
+    if (isReady) {
+      void loadApplications();
     }
   }, [currentUser, isReady]);
 
@@ -119,11 +139,20 @@ export const HomePage: React.FC = () => {
       return;
     }
 
+    const isApplied = appliedOpportunities.includes(opportunityId);
+    
     try {
-      await appApi.applyToOpportunity(opportunityId);
-      toast.success('Отклик отправлен!');
+      if (isApplied) {
+        await appApi.cancelApplication(opportunityId);
+        setAppliedOpportunities((prev) => prev.filter((id) => id !== opportunityId));
+        toast.success('Отклик отменен');
+      } else {
+        await appApi.applyToOpportunity(opportunityId);
+        setAppliedOpportunities((prev) => [...prev, opportunityId]);
+        toast.success('Отклик отправлен!');
+      }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Не удалось откликнуться');
+      toast.error(error instanceof Error ? error.message : 'Не удалось обработать отклик');
     }
   };
 
@@ -268,6 +297,7 @@ export const HomePage: React.FC = () => {
                 companies={companies}
                 tags={tags}
                 isFavorite={favorites.includes(opportunity.id)}
+                hasApplied={appliedOpportunities.includes(opportunity.id)}
                 onToggleFavorite={toggleFavorite}
                 onApply={handleApply}
                 isAuthenticated={!!currentUser && currentUser.role === 'applicant'}

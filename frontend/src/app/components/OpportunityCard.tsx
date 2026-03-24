@@ -1,18 +1,21 @@
 import React from 'react';
+import { useNavigate } from 'react-router';
 import { Company, Opportunity, Tag } from '../types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { MapPin, Building2, Calendar, Banknote, Briefcase, Star } from 'lucide-react';
+import { MapPin, Building2, Calendar, Banknote, Briefcase, Star, ArrowRight, CheckCircle, XCircle } from 'lucide-react';
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
   companies: Company[];
   tags: Tag[];
   isFavorite?: boolean;
+  hasApplied?: boolean;
   onToggleFavorite?: (id: string) => void;
   onApply?: (id: string) => void;
   isAuthenticated?: boolean;
+  onViewDetails?: (id: string) => void;
 }
 
 const opportunityTypeLabels: Record<string, string> = {
@@ -33,12 +36,23 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
   companies,
   tags,
   isFavorite = false,
+  hasApplied = false,
   onToggleFavorite,
   onApply,
   isAuthenticated = false,
+  onViewDetails,
 }) => {
+  const navigate = useNavigate();
   const company = companies.find((item) => item.id === opportunity.companyId);
   const opportunityTags = tags.filter((tag) => opportunity.tags.includes(tag.id));
+
+  const handleViewDetails = () => {
+    if (onViewDetails) {
+      onViewDetails(opportunity.id);
+    } else {
+      navigate(`/opportunity/${opportunity.id}`);
+    }
+  };
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -111,15 +125,25 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
         )}
       </CardContent>
 
-      {(onApply || onToggleFavorite) && (
+      {(onApply || onToggleFavorite || onViewDetails) && (
         <CardFooter className="flex gap-2">
-          {onApply && isAuthenticated && (
-            <Button onClick={() => onApply(opportunity.id)} className="flex-1">
+          <Button variant="outline" onClick={handleViewDetails} className="flex-1">
+            Подробнее
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+          {onApply && isAuthenticated && hasApplied && (
+            <Button variant="outline" onClick={() => onApply(opportunity.id)}>
+              <XCircle className="w-4 h-4 mr-2" />
+              Отменить отклик
+            </Button>
+          )}
+          {onApply && isAuthenticated && !hasApplied && (
+            <Button onClick={() => onApply(opportunity.id)}>
               Откликнуться
             </Button>
           )}
           {onApply && !isAuthenticated && (
-            <Button variant="outline" className="flex-1" disabled>
+            <Button variant="outline" disabled>
               Войдите для отклика
             </Button>
           )}

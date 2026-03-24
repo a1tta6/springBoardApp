@@ -68,6 +68,10 @@ public class ApplicationRepo {
             .fetchOptional(this::map);
     }
 
+    public void delete(final UUID id) {
+        this.dsl.deleteFrom(APPLICATIONS).where(APPLICATION_ID.eq(id)).execute();
+    }
+
     private ApplicationEntity map(final Record record) {
         return new ApplicationEntity(
             record.get(APPLICATION_ID),

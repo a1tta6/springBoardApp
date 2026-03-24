@@ -101,6 +101,16 @@ const MapContent: React.FC<{
                   {opportunity.workFormat === 'office' ? 'Офис' : opportunity.workFormat === 'hybrid' ? 'Гибрид' : 'Удаленно'}
                 </Badge>
               </div>
+              <a 
+                href={`/opportunity/${opportunity.id}`}
+                className="block mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = `/opportunity/${opportunity.id}`;
+                }}
+              >
+                Подробнее →
+              </a>
             </div>
           </Popup>
         </Marker>

@@ -41,6 +41,16 @@ public final class ApplicantEndpoint {
         this.app.apply(opportunityId, form);
     }
 
+    @DeleteMapping("/opportunities/{opportunityId}/applications")
+    public void cancelApplication(@PathVariable final String opportunityId) {
+        this.app.cancelApplication(opportunityId);
+    }
+
+    @GetMapping("/opportunities/{opportunityId}/applied")
+    public boolean hasApplied(@PathVariable final String opportunityId) {
+        return this.app.hasApplied(opportunityId);
+    }
+
     @GetMapping("/favorites")
     public List<ViewJson.Opportunity> favorites() {
         return this.app.favorites();
