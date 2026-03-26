@@ -97,4 +97,11 @@ public final class DbTables {
     public static final Field<UUID> FAVORITE_ID = field(unquotedName("favorites", "id"), UUID.class);
     public static final Field<UUID> FAVORITE_USER_ID = field(unquotedName("favorites", "user_id"), UUID.class);
     public static final Field<UUID> FAVORITE_OPPORTUNITY_ID = field(unquotedName("favorites", "opportunity_id"), UUID.class);
+
+    public static final Table<?> FRIENDS = table(unquotedName("friends"));
+    public static final Field<UUID> FRIEND_ID = field(unquotedName("friends", "id"), UUID.class);
+    public static final Field<UUID> FRIEND_REQUESTER_ID = field(unquotedName("friends", "requester_id"), UUID.class);
+    public static final Field<UUID> FRIEND_ADDRESSEE_ID = field(unquotedName("friends", "addressee_id"), UUID.class);
+    public static final Field<String> FRIEND_STATUS = field(unquotedName("friends", "status"), String.class);
+    public static final Field<Timestamp> FRIEND_CREATED_AT = field(unquotedName("friends", "created_at"), Timestamp.class);
 }

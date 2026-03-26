@@ -58,12 +58,15 @@ export const OpportunityPage: React.FC = () => {
   const [coverLetter, setCoverLetter] = useState('');
 
   const returnTo = searchParams.get('from');
+  const userId = searchParams.get('userId');
   
   const handleGoBack = () => {
     if (returnTo === 'applications' || returnTo === 'favorites') {
       navigate(`/dashboard/applicant?tab=${returnTo}`);
+    } else if (returnTo === 'user' && userId) {
+      navigate(`/user/${userId}`);
     } else {
-      navigate('/');
+      navigate(-1);
     }
   };
 

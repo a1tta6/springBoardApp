@@ -147,4 +147,29 @@ public final class ViewJson {
 
     public record StatusUpdate(String status) {
     }
+
+    public record Friend(
+        String id,
+        String userId,
+        String email,
+        String displayName,
+        String fullName,
+        String university,
+        String status,
+        Instant createdAt
+    ) {
+    }
+
+    public record FriendStatus(String status, String friendId) {
+    }
+
+    public record UserProfile(
+        User user,
+        boolean isFriend,
+        boolean showResume,
+        boolean showApplications,
+        List<Opportunity> favorites,
+        List<Application> applications
+    ) {
+    }
 }

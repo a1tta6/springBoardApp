@@ -178,4 +178,85 @@ export const appApi = {
       method: 'PATCH',
     });
   },
+
+  getFriends() {
+    return request<Friend[]>('/v1/applicant/friends');
+  },
+
+  getPendingFriendRequests() {
+    return request<Friend[]>('/v1/applicant/friends/requests');
+  },
+
+  getSentFriendRequests() {
+    return request<Friend[]>('/v1/applicant/friends/sent');
+  },
+
+  sendFriendRequest(userId: string) {
+    return request<void>(`/v1/applicant/friends/${userId}`, {
+      method: 'POST',
+    });
+  },
+
+  acceptFriendRequest(userId: string) {
+    return request<void>(`/v1/applicant/friends/${userId}/accept`, {
+      method: 'POST',
+    });
+  },
+
+  rejectFriendRequest(userId: string) {
+    return request<void>(`/v1/applicant/friends/${userId}/reject`, {
+      method: 'POST',
+    });
+  },
+
+  removeFriend(userId: string) {
+    return request<void>(`/v1/applicant/friends/${userId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  cancelFriendRequest(userId: string) {
+    return request<void>(`/v1/applicant/friends/${userId}/cancel`, {
+      method: 'DELETE',
+    });
+  },
+
+  getFriendStatus(userId: string) {
+    return request<FriendStatus>(`/v1/applicant/friends/${userId}/status`);
+  },
+
+  searchUsers(query: string) {
+    return request<User[]>(`/v1/applicant/users/search?q=${encodeURIComponent(query)}`);
+  },
+
+  getUserProfile(userId: string) {
+    return request<UserProfile>(`/v1/applicant/users/${userId}`);
+  },
 };
+
+export type { User } from '../types';
+
+export interface FriendStatus {
+  status: 'none' | 'friends' | 'sent' | 'pending';
+  friendId?: string;
+}
+
+export interface Friend {
+  id: string;
+  userId: string;
+  email: string;
+  displayName: string;
+  fullName?: string;
+  university?: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface UserProfile {
+  user: User;
+  isFriend: boolean;
+  showResume: boolean;
+  showApplications: boolean;
+  favorites: Opportunity[];
+  applications: Application[];
+}

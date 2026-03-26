@@ -11,18 +11,24 @@ import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
 import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { toast } from 'sonner';
-import { LogOut, Home, User, Briefcase, Star, Settings, CheckCircle, Clock, XCircle } from 'lucide-react';
-import { appApi } from '../api/appApi';
+import { LogOut, Home, User as UserIcon, Briefcase, Star, Settings, CheckCircle, Clock, XCircle, Search, UserPlus, UserMinus } from 'lucide-react';
+import { appApi, Friend, type User } from '../api/appApi';
 
 export const ApplicantDashboard: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { currentUser, logout, syncUser } = useAuth();
-    const [activeTab, setActiveTab] = useState<'profile' | 'applications' | 'favorites' | 'settings'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'applications' | 'favorites' | 'settings' | 'friends'>('profile');
     const [applications, setApplications] = useState<Application[]>([]);
     const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
     const [companies, setCompanies] = useState<Company[]>([]);
     const [favorites, setFavorites] = useState<Opportunity[]>([]);
+    const [friends, setFriends] = useState<Friend[]>([]);
+    const [pendingRequests, setPendingRequests] = useState<Friend[]>([]);
+    const [sentRequests, setSentRequests] = useState<Friend[]>([]);
+    const [searchResults, setSearchResults] = useState<User[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isSearching, setIsSearching] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [profile, setProfile] = useState({
         displayName: '',
@@ -71,16 +77,22 @@ export const ApplicantDashboard: React.FC = () => {
     useEffect(() => {
         async function load() {
             try {
-                const [nextApplications, nextOpportunities, nextCompanies, nextFavorites] = await Promise.all([
+                const [nextApplications, nextOpportunities, nextCompanies, nextFavorites, nextFriends, nextPending, nextSent] = await Promise.all([
                     appApi.getApplicantApplications(),
                     appApi.getOpportunities(),
                     appApi.getCompanies(),
                     appApi.getFavorites(),
+                    appApi.getFriends(),
+                    appApi.getPendingFriendRequests(),
+                    appApi.getSentFriendRequests(),
                 ]);
                 setApplications(nextApplications);
                 setOpportunities(nextOpportunities);
                 setCompanies(nextCompanies);
                 setFavorites(nextFavorites);
+                setFriends(nextFriends);
+                setPendingRequests(nextPending);
+                setSentRequests(nextSent);
             } catch (error) {
                 toast.error(error instanceof Error ? error.message : 'Ошибка при загрузке профиля соискателя');
             } finally {
@@ -192,9 +204,10 @@ export const ApplicantDashboard: React.FC = () => {
                             <p className="text-sm text-gray-500">{currentUser.email}</p>
                         </div>
                         <div className="mt-6 space-y-2">
-                            <Button variant={activeTab === 'profile' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('profile')}><User className="w-4 h-4 mr-2" />Профиль</Button>
+                            <Button variant={activeTab === 'profile' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('profile')}><UserIcon className="w-4 h-4 mr-2" />Профиль</Button>
                             <Button variant={activeTab === 'applications' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('applications')}><Briefcase className="w-4 h-4 mr-2" />Отклики</Button>
                             <Button variant={activeTab === 'favorites' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('favorites')}><Star className="w-4 h-4 mr-2" />Избранное</Button>
+                            <Button variant={activeTab === 'friends' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('friends')}><UserPlus className="w-4 h-4 mr-2" />Друзья</Button>
                             <Button variant={activeTab === 'settings' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('settings')}><Settings className="w-4 h-4 mr-2" />Настройки</Button>
                         </div>
                     </CardContent>
@@ -285,6 +298,194 @@ export const ApplicantDashboard: React.FC = () => {
                                             );
                                         })}
                                     </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {activeTab === 'friends' && (
+                        <Card>
+                            <CardHeader><CardTitle>Друзья</CardTitle></CardHeader>
+                            <CardContent className="space-y-6">
+                                <div className="space-y-3">
+                                    <Label>Поиск пользователей</Label>
+                                    <div className="flex gap-2">
+                                        <Input 
+                                            value={searchQuery} 
+                                            onChange={(e) => setSearchQuery(e.target.value)} 
+                                            placeholder="Поиск по имени или email..." 
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' && searchQuery.trim()) {
+                                                    setIsSearching(true);
+                                                    appApi.searchUsers(searchQuery).then(results => {
+                                                        setSearchResults(results.filter(u => u.id !== currentUser?.id));
+                                                        setIsSearching(false);
+                                                    }).catch(() => setIsSearching(false));
+                                                }
+                                            }}
+                                        />
+                                        <Button 
+                                            onClick={() => {
+                                                setIsSearching(true);
+                                                appApi.searchUsers(searchQuery).then(results => {
+                                                    setSearchResults(results.filter(u => u.id !== currentUser?.id));
+                                                    setIsSearching(false);
+                                                }).catch(() => setIsSearching(false));
+                                            }}
+                                            disabled={!searchQuery.trim() || isSearching}
+                                        >
+                                            <Search className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                    
+                                    {searchResults.length > 0 && (
+                                        <div className="border rounded-lg p-4 space-y-2">
+                                            <Label>Результаты поиска:</Label>
+                                            {searchResults.map(user => {
+                                                const isAlreadyFriend = friends.some(f => f.userId === user.id);
+                                                const isPending = pendingRequests.some(p => p.userId === user.id);
+                                                const isSent = sentRequests.some(s => s.userId === user.id);
+                                                
+                                                return (
+                                                    <div key={user.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                                        <div className="cursor-pointer" onClick={() => navigate(`/user/${user.id}`)}>
+                                                            <div className="font-medium">{user.displayName}</div>
+                                                            <div className="text-sm text-gray-500">{user.email}</div>
+                                                        </div>
+                                                        <div>
+                                                            {isAlreadyFriend && (
+                                                                <Button variant="outline" size="sm" onClick={() => {
+                                                                    appApi.removeFriend(user.id).then(() => {
+                                                                        setFriends(prev => prev.filter(f => f.userId !== user.id));
+                                                                    });
+                                                                }}>
+                                                                    <UserMinus className="w-4 h-4" />
+                                                                </Button>
+                                                            )}
+                                                            {isPending && (
+                                                                <>
+                                                                    <Button size="sm" className="mr-2" onClick={() => {
+                                                                        appApi.acceptFriendRequest(user.id).then(() => {
+                                                                            setPendingRequests(prev => prev.filter(p => p.userId !== user.id));
+                                                                            setFriends(prev => [...prev, { id: '', userId: user.id, email: user.email, displayName: user.displayName, status: 'accepted', createdAt: '' }]);
+                                                                        });
+                                                                    }}>
+                                                                        <CheckCircle className="w-4 h-4" />
+                                                                    </Button>
+                                                                    <Button variant="outline" size="sm" onClick={() => {
+                                                                        appApi.rejectFriendRequest(user.id).then(() => {
+                                                                            setPendingRequests(prev => prev.filter(p => p.userId !== user.id));
+                                                                        });
+                                                                    }}>
+                                                                        <XCircle className="w-4 h-4" />
+                                                                    </Button>
+                                                                </>
+                                                            )}
+                                                            {isSent && (
+                                                                <Button variant="outline" size="sm" onClick={() => {
+                                                                    appApi.cancelFriendRequest(user.id).then(() => {
+                                                                        setSentRequests(prev => prev.filter(s => s.userId !== user.id));
+                                                                    });
+                                                                }}>
+                                                                    Отменить
+                                                                </Button>
+                                                            )}
+                                                            {!isAlreadyFriend && !isPending && !isSent && (
+                                                                <Button size="sm" onClick={() => {
+                                                                    appApi.sendFriendRequest(user.id).then(() => {
+                                                                        setSentRequests(prev => [...prev, { id: '', userId: user.id, email: user.email, displayName: user.displayName, status: 'pending', createdAt: '' }]);
+                                                                    });
+                                                                }}>
+                                                                    <UserPlus className="w-4 h-4" />
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {pendingRequests.length > 0 && (
+                                    <div className="space-y-2">
+                                        <Label>Входящие заявки ({pendingRequests.length})</Label>
+                                        {pendingRequests.map(req => (
+                                            <div key={req.id} className="flex justify-between items-center p-3 border rounded-lg">
+                                                <div className="cursor-pointer" onClick={() => navigate(`/user/${req.userId}`)}>
+                                                    <div className="font-medium">{req.displayName}</div>
+                                                    <div className="text-sm text-gray-500">{req.email}</div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <Button size="sm" onClick={() => {
+                                                        appApi.acceptFriendRequest(req.userId).then(() => {
+                                                            setPendingRequests(prev => prev.filter(p => p.userId !== req.userId));
+                                                            setFriends(prev => [...prev, req]);
+                                                        });
+                                                    }}>
+                                                        <CheckCircle className="w-4 h-4 mr-1" />Принять
+                                                    </Button>
+                                                    <Button variant="outline" size="sm" onClick={() => {
+                                                        appApi.rejectFriendRequest(req.userId).then(() => {
+                                                            setPendingRequests(prev => prev.filter(p => p.userId !== req.userId));
+                                                        });
+                                                    }}>
+                                                        <XCircle className="w-4 h-4 mr-1" />Отклонить
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {sentRequests.length > 0 && (
+                                    <div className="space-y-2">
+                                        <Label>Отправленные заявки ({sentRequests.length})</Label>
+                                        {sentRequests.map(req => (
+                                            <div key={req.id} className="flex justify-between items-center p-3 border rounded-lg">
+                                                <div className="cursor-pointer" onClick={() => navigate(`/user/${req.userId}`)}>
+                                                    <div className="font-medium">{req.displayName}</div>
+                                                    <div className="text-sm text-gray-500">{req.email}</div>
+                                                </div>
+                                                <Button variant="outline" size="sm" onClick={() => {
+                                                    appApi.cancelFriendRequest(req.userId).then(() => {
+                                                        setSentRequests(prev => prev.filter(s => s.userId !== req.userId));
+                                                    });
+                                                }}>
+                                                    Отменить
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {friends.length > 0 ? (
+                                    <div className="space-y-2">
+                                        <Label>Мои друзья ({friends.length})</Label>
+                                        {friends.map(friend => (
+                                            <div 
+                                                key={friend.id} 
+                                                className="flex justify-between items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+                                                onClick={() => navigate(`/user/${friend.userId}`)}
+                                            >
+                                                <div>
+                                                    <div className="font-medium">{friend.displayName}</div>
+                                                    <div className="text-sm text-gray-500">{friend.email}</div>
+                                                    {friend.university && <div className="text-sm text-gray-400">{friend.university}</div>}
+                                                </div>
+                                                <Button variant="ghost" size="sm" onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    appApi.removeFriend(friend.userId).then(() => {
+                                                        setFriends(prev => prev.filter(f => f.userId !== friend.userId));
+                                                    });
+                                                }}>
+                                                    <UserMinus className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-500 text-center py-4">У вас пока нет друзей</p>
                                 )}
                             </CardContent>
                         </Card>

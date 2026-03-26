@@ -89,6 +89,19 @@ public final class ViewMapper {
         );
     }
 
+    public ViewJson.Friend friend(final FriendEntity friend, final UserEntity user) {
+        return new ViewJson.Friend(
+            friend.id().toString(),
+            user.id().toString(),
+            user.email(),
+            user.displayName(),
+            user.fullName(),
+            user.university(),
+            friend.status(),
+            friend.createdAt()
+        );
+    }
+
     private String text(final Enum<?> value) {
         return value.name().toLowerCase().replace('_', '-');
     }

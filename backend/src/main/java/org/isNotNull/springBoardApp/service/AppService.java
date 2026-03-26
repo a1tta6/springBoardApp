@@ -27,6 +27,7 @@ public final class AppService {
     private final OpportunityRepo opportunities;
     private final ApplicationRepo applications;
     private final FavoriteRepo favorites;
+    private final FriendRepo friends;
     private final ViewMapper view;
     private final CurrentUser current;
 
@@ -37,6 +38,7 @@ public final class AppService {
         final OpportunityRepo opportunities,
         final ApplicationRepo applications,
         final FavoriteRepo favorites,
+        final FriendRepo friends,
         final ViewMapper view,
         final CurrentUser current
     ) {
@@ -46,6 +48,7 @@ public final class AppService {
         this.opportunities = opportunities;
         this.applications = applications;
         this.favorites = favorites;
+        this.friends = friends;
         this.view = view;
         this.current = current;
     }
@@ -234,6 +237,158 @@ public final class AppService {
             .orElseThrow(() -> new MissingEntityException("User is missing"))
             .block();
         this.users.save(user);
+    }
+
+    public List<ViewJson.Friend> myFriends() {
+        final UUID userId = this.current.user().id();
+        final List<FriendEntity> friendships = this.friends.findFriendsByUserId(userId);
+        
+        return friendships.stream().map(f -> {
+            final UUID friendId = f.requesterId().equals(userId) ? f.addresseeId() : f.requesterId();
+            final UserEntity friend = this.users.findById(friendId).orElse(null);
+            if (friend == null) return null;
+            return this.view.friend(f, friend);
+        }).filter(f -> f != null).toList();
+    }
+
+    public List<ViewJson.Friend> pendingFriendRequests() {
+        final UUID userId = this.current.user().id();
+        final List<FriendEntity> requests = this.friends.findPendingRequestsToUser(userId);
+        
+        return requests.stream().map(r -> {
+            final UserEntity requester = this.users.findById(r.requesterId()).orElse(null);
+            if (requester == null) return null;
+            return this.view.friend(r, requester);
+        }).filter(f -> f != null).toList();
+    }
+
+    public List<ViewJson.Friend> sentFriendRequests() {
+        final UUID userId = this.current.user().id();
+        final List<FriendEntity> requests = this.friends.findPendingRequestsFromUser(userId);
+        
+        return requests.stream().map(r -> {
+            final UserEntity addressee = this.users.findById(r.addresseeId()).orElse(null);
+            if (addressee == null) return null;
+            return this.view.friend(r, addressee);
+        }).filter(f -> f != null).toList();
+    }
+
+    public void sendFriendRequest(final String userId) {
+        final UUID currentUserId = this.current.user().id();
+        final UUID targetUserId = UUID.fromString(userId);
+        
+        if (currentUserId.equals(targetUserId)) {
+            throw new IllegalStateException("Cannot send friend request to yourself");
+        }
+        
+        final var existing = this.friends.findFriendship(currentUserId, targetUserId);
+        if (existing.isPresent()) {
+            throw new IllegalStateException("Friend request already exists");
+        }
+        
+        this.friends.save(new FriendEntity(currentUserId, targetUserId, "pending"));
+    }
+
+    public void acceptFriendRequest(final String userId) {
+        final UUID currentUserId = this.current.user().id();
+        final UUID requesterId = UUID.fromString(userId);
+        
+        final var friendship = this.friends.findByRequesterAndAddressee(requesterId, currentUserId)
+            .orElseThrow(() -> new MissingEntityException("Friend request is missing"));
+        
+        this.friends.save(friendship.status("accepted"));
+    }
+
+    public void rejectFriendRequest(final String userId) {
+        final UUID currentUserId = this.current.user().id();
+        final UUID requesterId = UUID.fromString(userId);
+        
+        this.friends.deleteByRequesterAndAddressee(requesterId, currentUserId);
+    }
+
+    public void cancelFriendRequest(final String userId) {
+        final UUID currentUserId = this.current.user().id();
+        final UUID targetUserId = UUID.fromString(userId);
+        
+        this.friends.deleteByRequesterAndAddressee(currentUserId, targetUserId);
+    }
+
+    public void removeFriend(final String userId) {
+        final UUID currentUserId = this.current.user().id();
+        final UUID friendId = UUID.fromString(userId);
+        
+        this.friends.deleteByRequesterAndAddressee(currentUserId, friendId);
+    }
+
+    public ViewJson.FriendStatus getFriendStatus(final String userId) {
+        final UUID currentUserId = this.current.user().id();
+        final UUID targetUserId = UUID.fromString(userId);
+        
+        final var friendship = this.friends.findFriendship(currentUserId, targetUserId);
+        
+        if (friendship.isEmpty()) {
+            return new ViewJson.FriendStatus("none", null);
+        }
+        
+        final var f = friendship.get();
+        if (f.status().equals("accepted")) {
+            return new ViewJson.FriendStatus("friends", f.id().toString());
+        }
+        if (f.requesterId().equals(currentUserId)) {
+            return new ViewJson.FriendStatus("sent", f.id().toString());
+        } else {
+            return new ViewJson.FriendStatus("pending", f.id().toString());
+        }
+    }
+
+    public List<ViewJson.User> searchUsers(final String query) {
+        if (query == null || query.isBlank()) {
+            return List.of();
+        }
+        final String searchPattern = "%" + query.toLowerCase() + "%";
+        return this.users.findAll().stream()
+            .filter(u -> u.role().equals(UserRole.APPLICANT))
+            .filter(u -> 
+                (u.email() != null && u.email().toLowerCase().contains(query.toLowerCase())) ||
+                (u.displayName() != null && u.displayName().toLowerCase().contains(query.toLowerCase())) ||
+                (u.fullName() != null && u.fullName().toLowerCase().contains(query.toLowerCase()))
+            )
+            .map(this.view::user)
+            .toList();
+    }
+
+    public ViewJson.UserProfile userProfile(final String userId) {
+        final UUID targetUserId = UUID.fromString(userId);
+        final UserEntity user = this.users.findById(targetUserId)
+            .orElseThrow(() -> new MissingEntityException("User is missing"));
+        
+        final UUID currentUserId = this.current.user().id();
+        
+        final var friendship = this.friends.findFriendship(currentUserId, targetUserId);
+        final boolean isFriend = friendship.isPresent() && friendship.get().status().equals("accepted");
+        
+        final List<ViewJson.Opportunity> favorites = isFriend 
+            ? this.favorites.findByUserId(targetUserId).stream()
+                .map(f -> this.opportunities.findById(f.opportunityId()).orElse(null))
+                .filter(o -> o != null)
+                .map(this.view::opportunity)
+                .toList()
+            : List.of();
+        
+        final List<ViewJson.Application> applications = isFriend || user.showApplications()
+            ? this.applications.findByApplicantId(targetUserId).stream()
+                .map(this.view::application)
+                .toList()
+            : List.of();
+        
+        return new ViewJson.UserProfile(
+            this.view.user(user),
+            isFriend,
+            user.showResume(),
+            user.showApplications(),
+            favorites,
+            applications
+        );
     }
 
     private List<String> list(final List<String> items) {
