@@ -23,6 +23,6 @@ jobs:
           ssh -o StrictHostKeyChecking=no deployuser@194.67.119.172 << 'EOF'
           cd /home/deployuser/springBoardApp
           git pull
-          docker-compose down
-          docker-compose up -d --build
+          docker compose down
+          docker compose up -d --build
           EOF
