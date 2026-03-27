@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:9500/api';
+const API_URL = 'http://194.67.119.172:9500/api';
 
 /**
  * Shared http helper for backend requests.
