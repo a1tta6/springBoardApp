@@ -1,0 +1,28 @@
+name: Deploy to Debian 13 server
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.1
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Deploy via SSH
+        run: |
+          ssh -o StrictHostKeyChecking=no deployuser@194.67.119.172 << 'EOF'
+          cd /home/deployuser/springBoardApp
+          git pull
+          docker-compose down
+          docker-compose up -d --build
+          EOF
