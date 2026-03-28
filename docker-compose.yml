@@ -19,6 +19,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: backend
+    ports:
+      - "9500:9500"
     depends_on:
       - postgres
     environment:
