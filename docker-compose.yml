@@ -6,9 +6,9 @@ services:
     image: postgis/postgis:15-3.4
     container_name: postgres
     environment:
-      POSTGRES_DB: app
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: app
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -22,13 +22,11 @@ services:
     depends_on:
       - postgres
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/app
-      SPRING_DATASOURCE_USERNAME: app
-      SPRING_DATASOURCE_PASSWORD: app
       SPRING_PROFILES_ACTIVE: docker
       DB_URL: ${DB_URL}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
     ports:
       - "9500:9500"
 
@@ -42,6 +40,6 @@ services:
     depends_on:
       - backend
     ports:
-      - "5173:80"
+      - "80:80"
 volumes:
   postgres_data:
