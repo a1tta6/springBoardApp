@@ -92,6 +92,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(HttpMethod.GET, "/v1/opportunities", "/v1/tags", "/v1/companies").permitAll()
                 .requestMatchers("/v1/applicant/**").hasRole("APPLICANT")
                 .requestMatchers("/v1/employer/**").hasRole("EMPLOYER")
