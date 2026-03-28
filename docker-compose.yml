@@ -36,13 +36,12 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL}
     container_name: frontend
     depends_on:
       - backend
-    environment:
-      VITE_API_URL: ${VITE_API_URL}
     ports:
-      - "5173:5173"
-
+      - "5173:80"
 volumes:
   postgres_data:

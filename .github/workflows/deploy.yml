@@ -20,9 +20,13 @@ jobs:
 
       - name: Deploy via SSH
         run: |
-          ssh -o StrictHostKeyChecking=no deployuser@194.67.119.172 << 'EOF'
+          ssh -o StrictHostKeyChecking=no deployuser@194.67.119.172 << EOF
           cd /home/deployuser/springBoardApp
           git pull
+          export VITE_API_URL=${{ secrets.VITE_API_URL }}
+          export DB_URL=${{ secrets.DB_URL }}
+          export DB_USER=${{ secrets.DB_USER }}
+          export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           docker compose down
           docker compose up -d --build
           EOF
