@@ -73,7 +73,8 @@ public class SecurityConfig {
                 "http://localhost:5173",
                 "http://localhost",
                 "http://194.67.119.172",
-                "http://sprad.ru"
+                "http://sprad.ru",
+                "https://sprad.ru"
             )
         );
         config.setAllowedHeaders(List.of("*"));
