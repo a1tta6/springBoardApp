@@ -69,14 +69,7 @@ public class SecurityConfig {
     public CorsConfigurationSource cors() {
         final CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(
-            List.of(
-                "http://localhost:5173",
-                "http://localhost",
-                "http://194.67.119.172",
-                "http://sprad.ru:9500",
-                "http://sprad.ru",
-                "https://sprad.ru"
-            )
+            List.of("http://localhost", "https://sprad.ru")
         );
         config.setAllowedHeaders(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
