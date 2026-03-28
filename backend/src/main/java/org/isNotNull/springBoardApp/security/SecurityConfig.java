@@ -74,6 +74,7 @@ public class SecurityConfig {
                 "http://localhost",
                 "http://194.67.119.172",
                 "http://sprad.ru",
+                "http://sprad.ru:9500",
                 "https://sprad.ru"
             )
         );
