@@ -1,4 +1,4 @@
-const API_URL = 'http://194.67.119.172:9500/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 /**
  * Shared http helper for backend requests.
