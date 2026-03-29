@@ -36,6 +36,14 @@ export const appApi = {
     return request<Company[]>('/v1/companies');
   },
 
+  async getCompanyProfile(id: string) {
+    const data = await request<{ company: Company; opportunities: ApiOpportunity[] }>(`/v1/companies/${id}`);
+    return {
+      ...data,
+      opportunities: data.opportunities.map(opportunity),
+    };
+  },
+
   async getOpportunities() {
     return (await request<ApiOpportunity[]>('/v1/opportunities')).map(opportunity);
   },
@@ -109,6 +117,14 @@ export const appApi = {
     return (await request<ApiOpportunity[]>('/v1/employer/opportunities')).map(opportunity);
   },
 
+  getEmployerApplications() {
+    return request<ApiApplication[]>('/v1/employer/applications').then((apps) => apps.map(application));
+  },
+
+  getEmployerApplicants() {
+    return request<User[]>('/v1/employer/applicants');
+  },
+
   createEmployerOpportunity(data: {
     title: string;
     description: string;
@@ -126,6 +142,8 @@ export const appApi = {
     contactWebsite?: string;
     tags?: string[];
     requirements?: string;
+    eventDate?: string;
+    expiryDate?: string;
   }) {
     return request<ApiOpportunity>('/v1/employer/opportunities', {
       method: 'POST',
@@ -133,18 +151,85 @@ export const appApi = {
     }).then(opportunity);
   },
 
-  async getEmployerApplications() {
-    return (await request<ApiApplication[]>('/v1/employer/applications')).map(application);
-  },
-
-  getEmployerApplicants() {
-    return request<User[]>('/v1/employer/applicants');
-  },
-
-  updateEmployerApplicationStatus(applicationId: string, status: string) {
-    return request<void>(`/v1/employer/applications/${applicationId}`, {
+  updateEmployerOpportunity(id: string, data: {
+    title: string;
+    description: string;
+    type: string;
+    workFormat: string;
+    city: string;
+    address?: string;
+    latitude: number;
+    longitude: number;
+    salaryMin?: number;
+    salaryMax?: number;
+    currency?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+    contactWebsite?: string;
+    tags?: string[];
+    requirements?: string;
+    eventDate?: string;
+    expiryDate?: string;
+  }) {
+    return request<ApiOpportunity>(`/v1/employer/opportunities/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify({ status }),
+      body: JSON.stringify(data),
+    }).then(opportunity);
+  },
+
+  deleteOpportunity(id: string) {
+    return request<void>(`/v1/employer/opportunities/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  getVerificationStatus() {
+    return request<VerificationRequest>('/v1/employer/verification');
+  },
+
+  submitVerification() {
+    return request<VerificationRequest>('/v1/employer/verification/submit', {
+      method: 'POST',
+    });
+  },
+
+  updateCompanyProfile(data: {
+    name?: string;
+    inn?: string;
+    ogrn?: string;
+    address?: string;
+    website?: string;
+    logo?: string;
+    socialLinks?: string;
+    bio?: string;
+  }) {
+    return request<void>('/v1/employer/company', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateEmployerBio(bio: string) {
+    return request<void>('/v1/employer/bio', {
+      method: 'PATCH',
+      body: JSON.stringify({ bio }),
+    });
+  },
+
+  getCuratorPendingVerifications() {
+    return request<VerificationRequest[]>('/v1/curator/verifications/pending');
+  },
+
+  approveVerification(requestId: string) {
+    return request<void>(`/v1/curator/verifications/${requestId}/approve`, {
+      method: 'POST',
+    });
+  },
+
+  rejectVerification(requestId: string, reason: string) {
+    return request<void>(`/v1/curator/verifications/${requestId}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
     });
   },
 
@@ -235,6 +320,15 @@ export const appApi = {
 };
 
 export type { User } from '../types';
+
+export interface VerificationRequest {
+  id: string;
+  companyId: string;
+  status: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
+  createdAt: string;
+  processedAt?: string;
+}
 
 export interface FriendStatus {
   status: 'none' | 'friends' | 'sent' | 'pending';

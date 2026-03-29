@@ -34,6 +34,11 @@ public final class PublicEndpoint {
         return this.app.companies();
     }
 
+    @GetMapping("/companies/{companyId}")
+    public ViewJson.CompanyProfile company(@PathVariable final String companyId) {
+        return this.app.companyProfile(companyId);
+    }
+
     @GetMapping("/opportunities")
     public List<ViewJson.Opportunity> opportunities() {
         return this.app.opportunities();

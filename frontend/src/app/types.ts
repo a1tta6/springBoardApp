@@ -19,15 +19,13 @@ export interface Tag {
 export interface Company {
   id: string;
   name: string;
-  description: string;
-  industry: string;
+  inn?: string;
+  ogrn?: string;
+  address?: string;
   website?: string;
-  socialLinks?: {
-    linkedin?: string;
-    vk?: string;
-    telegram?: string;
-  };
   logo?: string;
+  socialLinks?: string;
+  bio?: string;
   verified: boolean;
   email: string;
 }
@@ -101,5 +99,10 @@ export const statusMap: Record<ApplicationStatus, string> = {
   pending: 'В обработке',
   reserved: 'В резерве'
 };
+
+export interface CompanyProfile {
+  company: Company;
+  opportunities: Opportunity[];
+}
 
 

@@ -64,45 +64,57 @@ public final class DataSeed implements CommandLineRunner {
 
         final CompanyEntity techno = this.companies.save(new CompanyEntity(
             "ТехноЛаб",
-            "Инновационная компания в области разработки ПО и AI решений",
-            "IT / Разработка ПО",
+            "7701234567",
+            "1177746358590",
+            "Москва, ул. Примерная, д. 1",
             "https://technolab.ru",
-            "https://linkedin.com/company/technolab",
-            "https://vk.com/technolab",
             null,
+            "https://vk.com/technolab\n" +
+                    "https://technolab.ru\n" +
+                    "+79012312412412",
+            "О компании: ТехноЛаб — инновационная IT-компания, занимаемся ПО и AI.",
             true,
             "hr@technolab.ru"
         ));
         final CompanyEntity data = this.companies.save(new CompanyEntity(
             "ДатаТех",
-            "Лидер в области анализа данных и машинного обучения",
-            "IT / Data Science",
+            "7712345678",
+            "1177746358591",
+            "Москва, ул. Данных, д. 2",
             "https://datatech.ru",
-            "https://linkedin.com/company/datatech",
             null,
-            null,
+            "https://vk.com/technolab\n" +
+                    "https://datatech.ru\n" +
+                    "+7901231231321",
+            "О компании: ДатаТех — аналитика данных и ML-решения.",
             true,
             "careers@datatech.ru"
         ));
         final CompanyEntity code = this.companies.save(new CompanyEntity(
             "КодМастер",
-            "Образовательная платформа и разработка веб приложений",
-            "IT / Образование",
+            null,
+            null,
+            "Москва, ул. Образовательная, д. 3",
             "https://codemaster.ru",
             null,
-            null,
-            null,
+            "https://vk.com/codemaster\n" +
+                    "https://codemaster.ru\n" +
+                    "+79014981291",
+            "О компании: КодМастер — образовательная платформа и разработка веб-приложений.",
             true,
             "jobs@codemaster.ru"
         ));
         final CompanyEntity startup = this.companies.save(new CompanyEntity(
             "СтартапХаб",
-            "Инкубатор стартапов и акселерационные программы",
-            "IT / Венчурный капитал",
+            null,
+            null,
+            "Москва, ул. Стартаповая, д. 4",
             "https://startuphub.ru",
             null,
-            null,
-            "https://t.me/startuphub",
+            "https://vk.com/startuphub\n" +
+                    "https://startuphub.ru\n" +
+                    "+79014981291",
+            "О компании: СтартапХаб — инкубатор стартапов.",
             false,
             "info@startuphub.ru"
         ));
@@ -132,7 +144,19 @@ public final class DataSeed implements CommandLineRunner {
             "ТехноЛаб HR",
             this.encoder.encode("employer123"),
             UserRole.EMPLOYER
-        ).company(techno.id());
+        ).company(techno.id())
+        .profile(
+            "ТехноЛаб HR",
+            "ТехноЛаб HR",
+            null,
+            null,
+            null,
+            List.of(),
+            List.of(),
+            null,
+            List.of()
+        )
+        .privacy(false, true);
         this.users.save(employer);
 
         this.users.save(new UserEntity(

@@ -12,74 +12,80 @@ public final class CompanyEntity {
 
     private final UUID id;
     private final String name;
-    private final String description;
-    private final String industry;
+    private final String inn;
+    private final String ogrn;
+    private final String address;
     private final String website;
-    private final String linkedin;
-    private final String vk;
-    private final String telegram;
+    private final String logo;
+    private final String socialLinks;
     private final boolean verified;
     private final String email;
+    private final String bio;
 
     public CompanyEntity(
         final UUID id,
         final String name,
-        final String description,
-        final String industry,
+        final String inn,
+        final String ogrn,
+        final String address,
         final String website,
-        final String linkedin,
-        final String vk,
-        final String telegram,
+        final String logo,
+        final String socialLinks,
+        final String bio,
         final boolean verified,
         final String email
     ) {
         this.id = id;
         this.name = name;
-        this.description = description;
-        this.industry = industry;
+        this.inn = inn;
+        this.ogrn = ogrn;
+        this.address = address;
         this.website = website;
-        this.linkedin = linkedin;
-        this.vk = vk;
-        this.telegram = telegram;
+        this.logo = logo;
+        this.socialLinks = socialLinks;
+        this.bio = bio;
         this.verified = verified;
         this.email = email;
     }
 
     public CompanyEntity(
         final String name,
-        final String description,
-        final String industry,
+        final String inn,
+        final String ogrn,
+        final String address,
         final String website,
-        final String linkedin,
-        final String vk,
-        final String telegram,
+        final String logo,
+        final String socialLinks,
+        final String bio,
         final boolean verified,
         final String email
     ) {
-        this(null, name, description, industry, website, linkedin, vk, telegram, verified, email);
+        this(null, name, inn, ogrn, address, website, logo, socialLinks, bio, verified, email);
     }
 
     public UUID id() { return this.id; }
     public String name() { return this.name; }
-    public String description() { return this.description; }
-    public String industry() { return this.industry; }
+    public String inn() { return this.inn; }
+    public String ogrn() { return this.ogrn; }
+    public String address() { return this.address; }
     public String website() { return this.website; }
-    public String linkedin() { return this.linkedin; }
-    public String vk() { return this.vk; }
-    public String telegram() { return this.telegram; }
+    public String logo() { return this.logo; }
+    public String socialLinks() { return this.socialLinks; }
     public boolean verified() { return this.verified; }
     public String email() { return this.email; }
+    public String bio() { return this.bio; }
 
     public CompanyEntity verify() {
         return new CompanyEntity(
             this.id,
             this.name,
-            this.description,
-            this.industry,
+            this.inn,
+            this.ogrn,
+            this.address,
             this.website,
-            this.linkedin,
-            this.vk,
-            this.telegram,
+            this.logo,
+            this.socialLinks,
+            this.bio,
             true,
             this.email
         );

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { Company, Opportunity } from '../types';
@@ -35,12 +36,13 @@ const opportunityTypeLabels: Record<string, string> = {
 };
 
 const MapContent: React.FC<{
-  opportunities: Opportunity[];
-  companies: Company[];
-  favorites: string[];
-  onOpportunityClick?: (opportunity: Opportunity) => void;
-  createCustomIcon: (type: string, isFavorite: boolean) => L.DivIcon;
-}> = ({ opportunities, companies, favorites, onOpportunityClick, createCustomIcon }) => (
+    opportunities: Opportunity[];
+    companies: Company[];
+    favorites: string[];
+    onOpportunityClick?: (opportunity: Opportunity) => void;
+    createCustomIcon: (type: string, isFavorite: boolean) => L.DivIcon;
+    handleViewDetails?: (opportunityId: string) => void;
+}> = ({ opportunities, companies, favorites, onOpportunityClick, createCustomIcon, handleViewDetails }) => (
   <>
     <TileLayer
       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -101,16 +103,12 @@ const MapContent: React.FC<{
                   {opportunity.workFormat === 'office' ? 'Офис' : opportunity.workFormat === 'hybrid' ? 'Гибрид' : 'Удаленно'}
                 </Badge>
               </div>
-              <a 
-                href={`/opportunity/${opportunity.id}`}
+              <button 
                 className="block mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium"
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.location.href = `/opportunity/${opportunity.id}`;
-                }}
+                onClick={()=>handleViewDetails(opportunity.id)}
               >
                 Подробнее →
-              </a>
+              </button>
             </div>
           </Popup>
         </Marker>
@@ -125,7 +123,12 @@ export const OpportunityMap: React.FC<OpportunityMapProps> = ({
   favorites,
   onOpportunityClick,
 }) => {
+  const navigate = useNavigate();
   const defaultCenter: [number, number] = [55.751244, 37.618423];
+
+  const handleViewDetails = (opportunityId : string) => {
+      navigate(`/opportunity/${opportunityId}`);
+  };
 
   const createCustomIcon = (type: string, isFavorite: boolean) => {
     const color = opportunityTypeColors[type] || '#6b7280';
@@ -156,6 +159,7 @@ export const OpportunityMap: React.FC<OpportunityMapProps> = ({
           favorites={favorites}
           onOpportunityClick={onOpportunityClick}
           createCustomIcon={createCustomIcon}
+          handleViewDetails={handleViewDetails}
         />
       </MapContainer>
     </div>
