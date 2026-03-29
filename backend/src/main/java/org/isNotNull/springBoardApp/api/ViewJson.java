@@ -15,9 +15,6 @@ public final class ViewJson {
     private ViewJson() {
     }
 
-    public record Social(String linkedin, String vk, String telegram) {
-    }
-
     public record Privacy(boolean showApplications, boolean showResume) {
     }
 
@@ -43,10 +40,13 @@ public final class ViewJson {
     public record Company(
         String id,
         String name,
-        String description,
-        String industry,
+        String inn,
+        String ogrn,
+        String address,
         String website,
-        Social socialLinks,
+        String logo,
+        String socialLinks,
+        String bio,
         boolean verified,
         String email
     ) {
@@ -170,6 +170,37 @@ public final class ViewJson {
         boolean showApplications,
         List<Opportunity> favorites,
         List<Application> applications
+    ) {
+    }
+
+    public record VerificationRequest(
+        String id,
+        String companyId,
+        String status,
+        String rejectionReason,
+        Instant createdAt,
+        Instant processedAt
+    ) {
+    }
+
+    public record CompanyUpdate(
+        String name,
+        String inn,
+        String ogrn,
+        String address,
+        String website,
+        String logo,
+        String socialLinks,
+        String bio
+    ) {
+    }
+
+    public record RejectionForm(String reason) {
+    }
+
+    public record CompanyProfile(
+        Company company,
+        List<Opportunity> opportunities
     ) {
     }
 }

@@ -55,16 +55,13 @@
             <column name="name" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="description" type="TEXT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="industry" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
+            <column name="inn" type="VARCHAR(20)"/>
+            <column name="ogrn" type="VARCHAR(20)"/>
+            <column name="address" type="VARCHAR(500)"/>
+            <column name="logo" type="TEXT"/>
+            <column name="social_links" type="TEXT"/>
+            <column name="bio" type="TEXT"/>
             <column name="website" type="VARCHAR(255)"/>
-            <column name="linkedin" type="VARCHAR(255)"/>
-            <column name="vk" type="VARCHAR(255)"/>
-            <column name="telegram" type="VARCHAR(255)"/>
             <column name="verified" type="BOOLEAN" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>

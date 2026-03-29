@@ -31,6 +31,21 @@ public final class CuratorEndpoint {
         this.app.verifyCompany(companyId);
     }
 
+    @GetMapping("/verifications/pending")
+    public List<ViewJson.VerificationRequest> pendingVerifications() {
+        return this.app.pendingVerifications();
+    }
+
+    @PostMapping("/verifications/{requestId}/approve")
+    public void approveVerification(@PathVariable final String requestId) {
+        this.app.approveVerification(requestId);
+    }
+
+    @PostMapping("/verifications/{requestId}/reject")
+    public void rejectVerification(@PathVariable final String requestId, @RequestBody final ViewJson.RejectionForm form) {
+        this.app.rejectVerification(requestId, form.reason());
+    }
+
     @GetMapping("/opportunities/pending")
     public List<ViewJson.Opportunity> opportunities() {
         return this.app.pendingOpportunities();

@@ -28,6 +28,7 @@ public final class AppService {
     private final ApplicationRepo applications;
     private final FavoriteRepo favorites;
     private final FriendRepo friends;
+    private final VerificationRepo verificationRequests;
     private final ViewMapper view;
     private final CurrentUser current;
 
@@ -39,6 +40,7 @@ public final class AppService {
         final ApplicationRepo applications,
         final FavoriteRepo favorites,
         final FriendRepo friends,
+        final VerificationRepo verificationRequests,
         final ViewMapper view,
         final CurrentUser current
     ) {
@@ -49,6 +51,7 @@ public final class AppService {
         this.applications = applications;
         this.favorites = favorites;
         this.friends = friends;
+        this.verificationRequests = verificationRequests;
         this.view = view;
         this.current = current;
     }
@@ -73,6 +76,17 @@ public final class AppService {
             this.opportunities.findById(UUID.fromString(opportunityId))
                 .orElseThrow(() -> new MissingEntityException("Opportunity is missing"))
         );
+    }
+
+    public ViewJson.CompanyProfile companyProfile(final String companyId) {
+        final var company = this.companies.findById(UUID.fromString(companyId))
+            .orElseThrow(() -> new MissingEntityException("Company is missing"));
+        final var companyView = this.view.company(company);
+        final var companyOpps = this.opportunities.findByCompanyId(UUID.fromString(companyId)).stream()
+            .sorted(Comparator.comparing(OpportunityEntity::publishedDate).reversed())
+            .map(this.view::opportunity)
+            .toList();
+        return new ViewJson.CompanyProfile(companyView, companyOpps);
     }
 
     public ViewJson.User profile(final ViewJson.ProfileUpdate form) {
@@ -185,6 +199,46 @@ public final class AppService {
         return this.view.opportunity(saved);
     }
 
+    public ViewJson.Opportunity updateOpportunity(final String opportunityId, final ViewJson.OpportunityCreate form) {
+        final UUID oppId = UUID.fromString(opportunityId);
+        final OpportunityEntity existing = this.opportunities.findById(oppId)
+            .orElseThrow(() -> new MissingEntityException("Opportunity is missing"));
+        
+        final OpportunityEntity updated = new OpportunityEntity(
+            existing.id(),
+            form.title(),
+            form.description(),
+            OpportunityType.valueOf(form.type().toUpperCase()),
+            existing.companyId(),
+            WorkFormat.valueOf(form.workFormat().toUpperCase()),
+            form.city(),
+            form.address(),
+            form.latitude(),
+            form.longitude(),
+            form.salaryMin(),
+            form.salaryMax(),
+            form.currency() == null ? "RUB" : form.currency(),
+            existing.publishedDate(),
+            form.expiryDate(),
+            form.eventDate(),
+            form.contactEmail(),
+            form.contactPhone(),
+            form.contactWebsite(),
+            this.ids(form.tags()),
+            existing.status(),
+            form.requirements(),
+            List.of()
+        );
+        
+        final OpportunityEntity saved = this.opportunities.save(updated);
+        return this.view.opportunity(saved);
+    }
+
+    public void deleteOpportunity(final String opportunityId) {
+        final UUID oppId = UUID.fromString(opportunityId);
+        this.opportunities.delete(oppId);
+    }
+
     public List<ViewJson.Application> employerApplications() {
         final List<UUID> own = this.opportunities.findByCompanyId(this.current.user().companyId()).stream()
             .map(OpportunityEntity::id)
@@ -215,6 +269,95 @@ public final class AppService {
             .orElseThrow(() -> new MissingEntityException("Company is missing"))
             .verify();
         this.companies.save(company);
+    }
+
+    public ViewJson.VerificationRequest submitVerificationRequest() {
+        final UserEntity user = this.current.user();
+        if (user.companyId() == null) {
+            throw new IllegalStateException("User has no company");
+        }
+        
+        final var existing = this.verificationRequests.findByCompanyId(user.companyId());
+        if (existing.isPresent()) {
+            final var req = existing.get();
+            if (req.status().equals("pending")) {
+                throw new IllegalStateException("Verification request already pending");
+            }
+            final var newReq = req.pending();
+            this.verificationRequests.save(newReq);
+            return this.view.verificationRequest(newReq);
+        }
+        
+        final var newRequest = new VerificationRequestEntity(user.companyId());
+        final var saved = this.verificationRequests.save(newRequest);
+        return this.view.verificationRequest(saved);
+    }
+
+    public ViewJson.VerificationRequest getVerificationStatus() {
+        final UserEntity user = this.current.user();
+        if (user.companyId() == null) {
+            return null;
+        }
+        
+        final var existing = this.verificationRequests.findByCompanyId(user.companyId());
+        return existing.map(this.view::verificationRequest).orElse(null);
+    }
+
+    public void updateCompanyProfile(final ViewJson.CompanyUpdate form) {
+        final UserEntity user = this.current.user();
+        if (user.companyId() == null) {
+            throw new IllegalStateException("User has no company");
+        }
+        
+        final var existing = this.verificationRequests.findByCompanyId(user.companyId());
+        if (existing.isPresent() && existing.get().status().equals("pending")) {
+            throw new IllegalStateException("Cannot update company while verification is pending");
+        }
+        
+        final var company = this.companies.findById(user.companyId())
+            .orElseThrow(() -> new MissingEntityException("Company is missing"));
+        
+        final var updated = new CompanyEntity(
+            company.id(),
+            form.name() != null ? form.name() : company.name(),
+            form.inn() != null ? form.inn() : company.inn(),
+            form.ogrn() != null ? form.ogrn() : company.ogrn(),
+            form.address() != null ? form.address() : company.address(),
+            form.website(),
+            form.logo(),
+            form.socialLinks(),
+            form.bio() != null ? form.bio() : company.bio(),
+            company.verified(),
+            company.email()
+        );
+        this.companies.save(updated);
+    }
+
+    public List<ViewJson.VerificationRequest> pendingVerifications() {
+        return this.verificationRequests.findPending().stream()
+            .map(this.view::verificationRequest)
+            .toList();
+    }
+
+    public void approveVerification(final String requestId) {
+        final var request = this.verificationRequests.findById(UUID.fromString(requestId))
+            .orElseThrow(() -> new MissingEntityException("Verification request is missing"));
+        
+        final var approved = request.approved();
+        this.verificationRequests.save(approved);
+        
+        final var company = this.companies.findById(request.companyId())
+            .orElseThrow(() -> new MissingEntityException("Company is missing"))
+            .verify();
+        this.companies.save(company);
+    }
+
+    public void rejectVerification(final String requestId, final String reason) {
+        final var request = this.verificationRequests.findById(UUID.fromString(requestId))
+            .orElseThrow(() -> new MissingEntityException("Verification request is missing"));
+        
+        final var rejected = request.rejected(reason);
+        this.verificationRequests.save(rejected);
     }
 
     public void moderate(final String opportunityId, final String status) {
