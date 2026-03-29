@@ -23,7 +23,8 @@ jobs:
           ssh -o StrictHostKeyChecking=no deployuser@194.67.119.172 << EOF
           cd /home/deployuser/springBoardApp
           git pull
-          echo "${{ secrets.SSL_PRIVATE_KEY }}" >> nginx/certs/privkey.pem
+          echo "${{ secrets.SSL_PRIVATE_KEY }}" > haproxy/privkey.pem
+          echo haproxy/fullchain.pem haproxy/privkey.pem > haproxy/site.pem
           export VITE_API_URL=${{ secrets.VITE_API_URL }}
           export DB_NAME=${{ secrets.DB_NAME }}
           export DB_URL=${{ secrets.DB_URL }}
