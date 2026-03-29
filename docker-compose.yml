@@ -43,7 +43,8 @@ services:
       - backend
 
   haproxy:
-    image: haproxy:2.9
+    build:
+      context: ./haproxy
     container_name: haproxy
     depends_on:
       - frontend
@@ -52,8 +53,5 @@ services:
       - "80:80"
       - "443:443"
       - "8404:8404"
-    volumes:
-      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-      - ./certs:/usr/local/etc/haproxy/certs
 volumes:
   postgres_data:
