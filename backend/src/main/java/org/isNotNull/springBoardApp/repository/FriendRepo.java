@@ -104,8 +104,14 @@ public class FriendRepo {
 
     public void deleteByRequesterAndAddressee(final UUID requesterId, final UUID addresseeId) {
         this.dsl.deleteFrom(FRIENDS)
-            .where(FRIEND_REQUESTER_ID.eq(requesterId).and(FRIEND_ADDRESSEE_ID.eq(addresseeId)))
-            .execute();
+                .where(
+                        (FRIEND_REQUESTER_ID.eq(requesterId)
+                                .and(FRIEND_ADDRESSEE_ID.eq(addresseeId)))
+                        .or(FRIEND_REQUESTER_ID.eq(addresseeId)
+                                .and(FRIEND_ADDRESSEE_ID.eq(requesterId))
+                                )
+                )
+                .execute();
     }
 
     private FriendEntity map(final Record record) {

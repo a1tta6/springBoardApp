@@ -105,4 +105,13 @@ export interface CompanyProfile {
   opportunities: Opportunity[];
 }
 
+export interface Recommendation {
+  id: string;
+  referrer: User;
+  referee: User;
+  subjectUser?: User;
+  opportunity?: Opportunity;
+  comment?: string;
+  createdAt: string;
+}
 

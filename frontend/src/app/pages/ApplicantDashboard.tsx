@@ -13,17 +13,22 @@ import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { toast } from 'sonner';
 import { LogOut, Home, User as UserIcon, Briefcase, Star, Settings, CheckCircle, Clock, XCircle, Search, UserPlus, UserMinus } from 'lucide-react';
 import { appApi, Friend, type User } from '../api/appApi';
+import { Recommendation } from '../types';
 
 export const ApplicantDashboard: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { currentUser, logout, syncUser } = useAuth();
-    const [activeTab, setActiveTab] = useState<'profile' | 'applications' | 'favorites' | 'settings' | 'friends'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'applications' | 'favorites' | 'settings' | 'friends' | 'recommendations'>('profile');
     const [applications, setApplications] = useState<Application[]>([]);
     const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
     const [companies, setCompanies] = useState<Company[]>([]);
     const [favorites, setFavorites] = useState<Opportunity[]>([]);
     const [friends, setFriends] = useState<Friend[]>([]);
+    const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+    const [recommendingAppId, setRecommendingAppId] = useState<string | null>(null);
+    const [recommendFriendId, setRecommendFriendId] = useState<string>('');
+    const [recommendComment, setRecommendComment] = useState<string>('');
     const [pendingRequests, setPendingRequests] = useState<Friend[]>([]);
     const [sentRequests, setSentRequests] = useState<Friend[]>([]);
     const [searchResults, setSearchResults] = useState<User[]>([]);
@@ -77,7 +82,7 @@ export const ApplicantDashboard: React.FC = () => {
     useEffect(() => {
         async function load() {
             try {
-                const [nextApplications, nextOpportunities, nextCompanies, nextFavorites, nextFriends, nextPending, nextSent] = await Promise.all([
+                const [nextApplications, nextOpportunities, nextCompanies, nextFavorites, nextFriends, nextPending, nextSent, nextRecs] = await Promise.all([
                     appApi.getApplicantApplications(),
                     appApi.getOpportunities(),
                     appApi.getCompanies(),
@@ -85,6 +90,7 @@ export const ApplicantDashboard: React.FC = () => {
                     appApi.getFriends(),
                     appApi.getPendingFriendRequests(),
                     appApi.getSentFriendRequests(),
+                    appApi.getApplicantRecommendations(),
                 ]);
                 setApplications(nextApplications);
                 setOpportunities(nextOpportunities);
@@ -93,6 +99,7 @@ export const ApplicantDashboard: React.FC = () => {
                 setFriends(nextFriends);
                 setPendingRequests(nextPending);
                 setSentRequests(nextSent);
+                setRecommendations(nextRecs);
             } catch (error) {
                 toast.error(error instanceof Error ? error.message : 'Ошибка при загрузке профиля соискателя');
             } finally {
@@ -208,6 +215,7 @@ export const ApplicantDashboard: React.FC = () => {
                             <Button variant={activeTab === 'applications' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('applications')}><Briefcase className="w-4 h-4 mr-2" />Отклики</Button>
                             <Button variant={activeTab === 'favorites' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('favorites')}><Star className="w-4 h-4 mr-2" />Избранное</Button>
                             <Button variant={activeTab === 'friends' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('friends')}><UserPlus className="w-4 h-4 mr-2" />Друзья</Button>
+                            <Button variant={activeTab === 'recommendations' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('recommendations')}><Star className="w-4 h-4 mr-2" />Рекомендации</Button>
                             <Button variant={activeTab === 'settings' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('settings')}><Settings className="w-4 h-4 mr-2" />Настройки</Button>
                         </div>
                     </CardContent>
@@ -250,10 +258,9 @@ export const ApplicantDashboard: React.FC = () => {
                                             return (
                                                 <div 
                                                     key={app.id} 
-                                                    className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                                                    onClick={() => navigate(`/opportunity/${app.opportunityId}?from=applications`)}
+                                                    className="border rounded-lg p-4 transition-colors"
                                                 >
-                                                    <div className="flex justify-between items-start">
+                                                    <div className="flex justify-between items-start cursor-pointer hover:bg-gray-50 p-2 -m-2 rounded" onClick={() => navigate(`/opportunity/${app.opportunityId}?from=applications`)}>
                                                         <div>
                                                             <h4 className="font-semibold">{opportunity?.title}</h4>
                                                             <p className="text-sm text-gray-500">{company?.name}</p>
@@ -264,6 +271,62 @@ export const ApplicantDashboard: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     {app.message && <p className="text-sm text-gray-600 mt-2">{app.message}</p>}
+                                                    
+                                                    {app.status === 'accepted' && (
+                                                        <div className="mt-4 pt-4 border-t">
+                                                            {recommendingAppId === app.id ? (
+                                                                <div className="space-y-3 bg-gray-50 p-3 rounded-lg">
+                                                                    <div className="font-semibold text-sm">Порекомендовать друга работодателю</div>
+                                                                    {friends.length === 0 ? (
+                                                                        <p className="text-sm text-gray-500">У вас пока нет друзей для рекомендации.</p>
+                                                                    ) : (
+                                                                        <>
+                                                                            <select 
+                                                                                className="w-full border p-2 rounded text-sm"
+                                                                                value={recommendFriendId}
+                                                                                onChange={e => setRecommendFriendId(e.target.value)}
+                                                                            >
+                                                                                <option value="">Выберите друга...</option>
+                                                                                {friends.map(f => (
+                                                                                    <option key={f.userId} value={f.userId}>{f.displayName} ({f.email})</option>
+                                                                                ))}
+                                                                            </select>
+                                                                            <Input 
+                                                                                placeholder="Добавить комментарий (необязательно)" 
+                                                                                value={recommendComment} 
+                                                                                onChange={e => setRecommendComment(e.target.value)} 
+                                                                            />
+                                                                            <div className="flex gap-2">
+                                                                                <Button 
+                                                                                    size="sm" 
+                                                                                    disabled={!recommendFriendId}
+                                                                                    onClick={() => {
+                                                                                        appApi.recommendFriendToEmployer({
+                                                                                            friendId: recommendFriendId,
+                                                                                            opportunityId: app.opportunityId,
+                                                                                            comment: recommendComment
+                                                                                        }).then(() => {
+                                                                                            toast.success('Рекомендация отправлена');
+                                                                                            setRecommendingAppId(null);
+                                                                                        }).catch(err => {
+                                                                                            toast.error(err instanceof Error ? err.message : 'Ошибка при отправке');
+                                                                                        });
+                                                                                    }}
+                                                                                >Отправить</Button>
+                                                                                <Button size="sm" variant="outline" onClick={() => setRecommendingAppId(null)}>Отмена</Button>
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <Button size="sm" variant="outline" onClick={() => {
+                                                                    setRecommendingAppId(app.id);
+                                                                    setRecommendFriendId('');
+                                                                    setRecommendComment('');
+                                                                }}>Рекомендовать друга</Button>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             );
                                         })}
@@ -486,6 +549,77 @@ export const ApplicantDashboard: React.FC = () => {
                                     </div>
                                 ) : (
                                     <p className="text-gray-500 text-center py-4">У вас пока нет друзей</p>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {activeTab === 'recommendations' && (
+                        <Card>
+                            <CardHeader><CardTitle>Входящие рекомендации</CardTitle></CardHeader>
+                            <CardContent>
+                                {isLoading ? (
+                                    <p className="text-gray-500">Загрузка...</p>
+                                ) : recommendations.length === 0 ? (
+                                    <p className="text-gray-500">У вас пока нет входящих рекомендаций.</p>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {recommendations.map(rec => {
+                                            // APPLICANT recommendations are about an EMPLOYER. So subjectUser is an employer, or maybe opportunity is provided.
+                                            // The backend endpoint `recommendEmployerToFriend` sets subjectUser to the EMPLOYER user. 
+                                            // We have the company information. Wait, subjectUser has companyId. We can find the company.
+                                            const recommendedCompany = rec.subjectUser?.companyId 
+                                                ? companies.find(c => c.id === rec.subjectUser!.companyId) 
+                                                : undefined;
+                                                
+                                            const recommendedOpportunity = rec.opportunity;
+                                                
+                                            return (
+                                                <div key={rec.id} className="border rounded-lg p-4">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <div className="font-semibold text-lg">
+                                                            Рекомендация от {rec.referrer?.displayName || rec.referrer?.email}
+                                                        </div>
+                                                        <Badge variant="secondary">Рекомендация</Badge>
+                                                    </div>
+                                                    {recommendedOpportunity ? (
+                                                        <div 
+                                                            className="bg-white border rounded p-3 mt-2 cursor-pointer hover:bg-gray-50"
+                                                            onClick={() => navigate(`/opportunity/${recommendedOpportunity.id}`)}
+                                                        >
+                                                            <h4 className="font-medium text-blue-600">{recommendedOpportunity.title}</h4>
+                                                            <p className="text-sm text-gray-500">
+                                                                {companies.find(c => c.id === recommendedOpportunity.companyId)?.name || 'Компания'}
+                                                            </p>
+                                                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">Вам порекомендовали эту возможность.</p>
+                                                        </div>
+                                                    ) : recommendedCompany ? (
+                                                        <div 
+                                                            className="bg-white border rounded p-3 mt-2 cursor-pointer hover:bg-gray-50"
+                                                            onClick={() => navigate(`/company/${recommendedCompany.id}`)}
+                                                        >
+                                                            <h4 className="font-medium text-blue-600">{recommendedCompany.name}</h4>
+                                                            {recommendedCompany.address && <p className="text-sm text-gray-500">{recommendedCompany.address}</p>}
+                                                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">Вам порекомендовали этого работодателя.</p>
+                                                        </div>
+                                                    ) : rec.subjectUser ? (
+                                                        <div className="bg-white border rounded p-3 mt-2">
+                                                            <h4 className="font-medium">{rec.subjectUser.displayName}</h4>
+                                                            <p className="text-sm text-gray-500">{rec.subjectUser.email}</p>
+                                                        </div>
+                                                    ) : null}
+                                                    {rec.comment && (
+                                                        <p className="text-sm text-gray-600 mt-3 p-2 bg-gray-50 rounded border-l-2 border-blue-500 italic">
+                                                            "{rec.comment}"
+                                                        </p>
+                                                    )}
+                                                    <div className="text-xs text-gray-400 mt-2">
+                                                        {new Date(rec.createdAt).toLocaleString()}
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
                                 )}
                             </CardContent>
                         </Card>

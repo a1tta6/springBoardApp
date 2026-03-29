@@ -4,7 +4,7 @@ import { Opportunity, Company, Tag } from '../types';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { appApi } from '../api/appApi';
+import { appApi, Friend } from '../api/appApi';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { 
@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Textarea } from '../components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Label } from '../components/ui/label';
 
 const opportunityTypeLabels: Record<string, string> = {
   internship: 'Стажировка',
@@ -57,6 +59,12 @@ export const OpportunityPage: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [coverLetter, setCoverLetter] = useState('');
 
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [isRecommendDialogOpen, setIsRecommendDialogOpen] = useState(false);
+  const [selectedFriendId, setSelectedFriendId] = useState('');
+  const [recommendComment, setRecommendComment] = useState('');
+  const [isRecommending, setIsRecommending] = useState(false);
+
   const returnTo = searchParams.get('from');
   const userId = searchParams.get('userId');
   
@@ -75,17 +83,19 @@ export const OpportunityPage: React.FC = () => {
       if (!id) return;
       
       try {
-        const [oppData, nextCompanies, nextTags, applied] = await Promise.all([
+        const [oppData, nextCompanies, nextTags, applied, myFriends] = await Promise.all([
           appApi.getOpportunity(id),
           appApi.getCompanies(),
           appApi.getTags(),
           currentUser?.role === 'applicant' ? appApi.getHasApplied(id) : Promise.resolve(false),
+          currentUser?.role === 'applicant' ? appApi.getFriends() : Promise.resolve([]),
         ]);
         
         setOpportunity(oppData);
         setCompanies(nextCompanies);
         setTags(nextTags);
         setHasApplied(applied);
+        setFriends(myFriends);
         
         if (currentUser?.role === 'applicant') {
           const favorites = await appApi.getFavorites();
@@ -166,6 +176,26 @@ export const OpportunityPage: React.FC = () => {
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Не удалось обновить избранное');
+    }
+  };
+
+  const handleRecommendOpportunity = async () => {
+    if (!selectedFriendId) return;
+    setIsRecommending(true);
+    try {
+      await appApi.recommendOpportunityToFriend({
+        friendId: selectedFriendId,
+        opportunityId: id!,
+        comment: recommendComment
+      });
+      toast.success('Рекомендация отправлена');
+      setIsRecommendDialogOpen(false);
+      setSelectedFriendId('');
+      setRecommendComment('');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Не удалось отправить рекомендацию');
+    } finally {
+      setIsRecommending(false);
     }
   };
 
@@ -433,7 +463,7 @@ export const OpportunityPage: React.FC = () => {
               )}
 
               {currentUser?.role === 'applicant' && (
-                <div className="pt-6 border-t">
+                <div className="pt-6 border-t flex flex-col gap-3">
                   {hasApplied ? (
                     <div className="flex flex-col sm:flex-row gap-3">
                       <Button
@@ -452,16 +482,35 @@ export const OpportunityPage: React.FC = () => {
                       >
                         Перейти в личный кабинет
                       </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsRecommendDialogOpen(true)}
+                        className="flex-1"
+                      >
+                        <Star className="w-4 h-4 mr-2" />
+                        Рекомендовать другу
+                      </Button>
                     </div>
                   ) : (
-                    <Button
-                      onClick={handleApply}
-                      disabled={isApplying}
-                      className="w-full sm:w-auto"
-                      size="lg"
-                    >
-                      {isApplying ? 'Отправка...' : 'Откликнуться на вакансию'}
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Button
+                        onClick={handleApply}
+                        disabled={isApplying}
+                        className="flex-1"
+                        size="lg"
+                      >
+                        {isApplying ? 'Отправка...' : 'Откликнуться на вакансию'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsRecommendDialogOpen(true)}
+                        className="flex-1"
+                        size="lg"
+                      >
+                        <Star className="w-4 h-4 mr-2" />
+                        Рекомендовать другу
+                      </Button>
+                    </div>
                   )}
                 </div>
               )}
@@ -555,6 +604,55 @@ export const OpportunityPage: React.FC = () => {
                 </Button>
                 <Button onClick={handleSubmitApplication} disabled={isApplying}>
                   {isApplying ? 'Отправка...' : 'Отправить'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isRecommendDialogOpen} onOpenChange={setIsRecommendDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Рекомендовать возможность другу</DialogTitle>
+                <DialogDescription>
+                  Выберите друга, которому вы хотите порекомендовать эту возможность
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Ваши друзья</Label>
+                  <Select value={selectedFriendId} onValueChange={setSelectedFriendId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите друга" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {friends.map(friend => (
+                        <SelectItem key={friend.userId} value={friend.userId}>
+                          {friend.displayName || friend.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Комментарий (необязательно)</Label>
+                  <Textarea
+                    value={recommendComment}
+                    onChange={(e) => setRecommendComment(e.target.value)}
+                    placeholder="Пара слов о том, почему эта возможность может быть интересна..."
+                    rows={3}
+                  />
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsRecommendDialogOpen(false)}>Отмена</Button>
+                <Button 
+                  onClick={handleRecommendOpportunity} 
+                  disabled={!selectedFriendId || isRecommending}
+                >
+                  {isRecommending ? 'Отправка...' : 'Отправить рекомендацию'}
                 </Button>
               </DialogFooter>
             </DialogContent>

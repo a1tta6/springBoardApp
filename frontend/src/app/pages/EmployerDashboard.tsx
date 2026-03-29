@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
-import { Application, Company, Opportunity, User, statusMap } from '../types';
+import { Application, Company, Opportunity, User, statusMap, Recommendation } from '../types';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -10,7 +10,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { toast } from 'sonner';
-import { LogOut, Home, Building2, Briefcase, Users, CheckCircle, Clock, XCircle, Search, Plus, Edit, Trash2, ExternalLink, Globe, Send, AlertCircle } from 'lucide-react';
+import { LogOut, Home, Building2, Briefcase, Users, CheckCircle, Clock, XCircle, Search, Plus, Edit, Trash2, ExternalLink, Globe, Send, AlertCircle, Star } from 'lucide-react';
 import { appApi, VerificationRequest } from '../api/appApi';
 
 type OpportunityStatus = 'active' | 'closed' | 'planned';
@@ -20,10 +20,11 @@ type WorkFormat = 'office' | 'hybrid' | 'remote';
 export const EmployerDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'company' | 'opportunities' | 'applications'>('company');
+  const [activeTab, setActiveTab] = useState<'company' | 'opportunities' | 'applications' | 'recommendations'>('company');
   const [companies, setCompanies] = useState<Company[]>([]);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [applicants, setApplicants] = useState<User[]>([]);
   const [innError, setInnError] = useState<string>("");
   const [ogrnError, setOgrnError] = useState<string>("");
@@ -78,18 +79,20 @@ export const EmployerDashboard: React.FC = () => {
   useEffect(() => {
     async function load() {
       try {
-        const [nextCompanies, nextOpportunities, nextApplications, nextApplicants, verificationData] = await Promise.all([
+        const [nextCompanies, nextOpportunities, nextApplications, nextApplicants, verificationData, nextRecs] = await Promise.all([
           appApi.getCompanies(),
           appApi.getEmployerOpportunities(),
           appApi.getEmployerApplications(),
           appApi.getEmployerApplicants(),
           appApi.getVerificationStatus(),
+          appApi.getEmployerRecommendations(),
         ]);
         setCompanies(nextCompanies);
         setOpportunities(nextOpportunities);
         setApplications(nextApplications);
         setApplicants(nextApplicants);
         setVerificationRequest(verificationData);
+        setRecommendations(nextRecs);
         
         if (nextCompanies.length > 0) {
           const myCompany = nextCompanies.find((c) => c.id === currentUser?.companyId);
@@ -193,8 +196,8 @@ export const EmployerDashboard: React.FC = () => {
   const handleUpdateOpp = async () => {
     if (!editingId) return;
     try {
-      await appApi.updateEmployerOpportunity(editingId, oppForm);
-      setOpportunities((prev) => prev.map((opp) => (opp.id === editingId ? { ...opp, ...oppForm } : opp)));
+      const updatedOpp = await appApi.updateEmployerOpportunity(editingId, oppForm);
+      setOpportunities((prev) => prev.map((opp) => (opp.id === editingId ? updatedOpp : opp)));
       toast.success('Возможность обновлена');
       resetOppForm();
     } catch (error) {
@@ -312,6 +315,7 @@ export const EmployerDashboard: React.FC = () => {
             <Button variant={activeTab === 'company' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('company')}><Building2 className="w-4 h-4 mr-2" />Компания</Button>
             <Button variant={activeTab === 'opportunities' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('opportunities')}><Briefcase className="w-4 h-4 mr-2" />Возможности</Button>
             <Button variant={activeTab === 'applications' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('applications')}><Users className="w-4 h-4 mr-2" />Отклики</Button>
+            <Button variant={activeTab === 'recommendations' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('recommendations')}><Star className="w-4 h-4 mr-2" />Рекомендации</Button>
           </CardContent>
         </Card>
 
@@ -721,6 +725,56 @@ export const EmployerDashboard: React.FC = () => {
                         </div>
                       );
                     })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === 'recommendations' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Входящие рекомендации</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <p className="text-gray-500">Загрузка...</p>
+                ) : recommendations.length === 0 ? (
+                  <p className="text-gray-500">У вас пока нет входящих рекомендаций.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {recommendations.map(rec => (
+                      <div key={rec.id} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="font-semibold text-lg">
+                            Рекомендация от {rec.referrer?.displayName || rec.referrer?.email}
+                          </div>
+                          <Badge variant="secondary">Рекомендация от друга</Badge>
+                        </div>
+                        
+                        <div 
+                          className="bg-white border rounded p-3 mt-2 cursor-pointer hover:bg-gray-50"
+                          onClick={() => navigate(`/user/${rec.referee?.id}`)}
+                        >
+                          <h4 className="font-medium text-blue-600">{rec.referee?.displayName || rec.referee?.email}</h4>
+                          <p className="text-sm text-gray-500 mt-1">Рекомендуемый кандидат</p>
+                          {rec.opportunity && (
+                            <p className="text-sm text-gray-500 mt-1">
+                              На вакансию: <span className="font-medium">{rec.opportunity.title}</span>
+                            </p>
+                          )}
+                        </div>
+                        
+                        {rec.comment && (
+                          <p className="text-sm text-gray-600 mt-3 p-2 bg-gray-50 rounded border-l-2 border-blue-500 italic">
+                            "{rec.comment}"
+                          </p>
+                        )}
+                        <div className="text-xs text-gray-400 mt-2">
+                          {new Date(rec.createdAt).toLocaleString()}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>

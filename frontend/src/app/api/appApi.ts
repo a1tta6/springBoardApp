@@ -327,9 +327,38 @@ export const appApi = {
   getUserProfile(userId: string) {
     return request<UserProfile>(`/v1/applicant/users/${userId}`);
   },
+
+  getApplicantRecommendations() {
+    return request<Recommendation[]>('/v1/applicant/recommendations');
+  },
+
+  getEmployerRecommendations() {
+    return request<Recommendation[]>('/v1/employer/recommendations');
+  },
+
+  recommendFriendToEmployer(data: { friendId: string; opportunityId: string; comment?: string }) {
+    return request<void>('/v1/applicant/recommendations/to-employer', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  recommendEmployerToFriend(data: { friendId: string; companyId: string; comment?: string }) {
+    return request<void>('/v1/applicant/recommendations/to-friend', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  recommendOpportunityToFriend(data: { friendId: string; opportunityId: string; comment?: string }) {
+    return request<void>('/v1/applicant/recommendations/opportunity-to-friend', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 };
 
-export type { User } from '../types';
+export type { User, Recommendation } from '../types';
 
 export interface FriendStatus {
   status: 'none' | 'friends' | 'sent' | 'pending';

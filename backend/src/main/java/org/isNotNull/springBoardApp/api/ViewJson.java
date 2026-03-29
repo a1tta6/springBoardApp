@@ -203,4 +203,36 @@ public final class ViewJson {
         List<Opportunity> opportunities
     ) {
     }
+
+    public record Recommendation(
+        String id,
+        User referrer,
+        User referee,
+        User subjectUser,
+        Opportunity opportunity,
+        String comment,
+        Instant createdAt
+    ) {
+    }
+
+    public record RecommendFriendForm(
+        String friendId,
+        String opportunityId,
+        String comment
+    ) {
+    }
+
+    public record RecommendEmployerForm(
+        String friendId,
+        String companyId,
+        String comment
+    ) {
+    }
+
+    public record RecommendOpportunityForm(
+        String friendId,
+        String opportunityId,
+        String comment
+    ) {
+    }
 }

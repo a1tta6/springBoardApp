@@ -72,4 +72,24 @@ public final class ApplicantFriendsEndpoint {
     public ViewJson.UserProfile userProfile(@PathVariable final String userId) {
         return this.app.userProfile(userId);
     }
+
+    @GetMapping("/recommendations")
+    public List<ViewJson.Recommendation> myRecommendations() {
+        return this.app.getApplicantRecommendations();
+    }
+
+    @PostMapping("/recommendations/to-employer")
+    public void recommendFriendToEmployer(@RequestBody final ViewJson.RecommendFriendForm form) {
+        this.app.recommendFriendToEmployer(form);
+    }
+
+    @PostMapping("/recommendations/to-friend")
+    public void recommendEmployerToFriend(@RequestBody final ViewJson.RecommendEmployerForm form) {
+        this.app.recommendEmployerToFriend(form);
+    }
+
+    @PostMapping("/recommendations/opportunity-to-friend")
+    public void recommendOpportunityToFriend(@RequestBody final ViewJson.RecommendOpportunityForm form) {
+        this.app.recommendOpportunityToFriend(form);
+    }
 }

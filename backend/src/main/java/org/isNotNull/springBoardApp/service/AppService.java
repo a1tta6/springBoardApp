@@ -29,6 +29,7 @@ public final class AppService {
     private final FavoriteRepo favorites;
     private final FriendRepo friends;
     private final VerificationRepo verificationRequests;
+    private final RecommendationRepo recommendations;
     private final ViewMapper view;
     private final CurrentUser current;
 
@@ -41,6 +42,7 @@ public final class AppService {
         final FavoriteRepo favorites,
         final FriendRepo friends,
         final VerificationRepo verificationRequests,
+        final RecommendationRepo recommendations,
         final ViewMapper view,
         final CurrentUser current
     ) {
@@ -52,6 +54,7 @@ public final class AppService {
         this.favorites = favorites;
         this.friends = friends;
         this.verificationRequests = verificationRequests;
+        this.recommendations = recommendations;
         this.view = view;
         this.current = current;
     }
@@ -538,6 +541,123 @@ public final class AppService {
             favorites,
             applications
         );
+    }
+
+    public List<ViewJson.Recommendation> getApplicantRecommendations() {
+        final UUID currentUserId = this.current.user().id();
+        return this.recommendations.findByRefereeId(currentUserId).stream()
+            .map(rec -> this.view.recommendation(
+                rec,
+                this.users.findById(rec.referrerId()).orElse(null),
+                this.users.findById(rec.refereeId()).orElse(null),
+                this.users.findById(rec.subjectUserId()).orElse(null),
+                rec.opportunityId() != null ? this.opportunities.findById(rec.opportunityId()).orElse(null) : null
+            ))
+            .toList();
+    }
+
+    public List<ViewJson.Recommendation> getEmployerRecommendations() {
+        final UUID currentUserId = this.current.user().id();
+        return this.recommendations.findByRefereeId(currentUserId).stream()
+            .map(rec -> this.view.recommendation(
+                rec,
+                this.users.findById(rec.referrerId()).orElse(null),
+                this.users.findById(rec.refereeId()).orElse(null),
+                this.users.findById(rec.subjectUserId()).orElse(null),
+                rec.opportunityId() != null ? this.opportunities.findById(rec.opportunityId()).orElse(null) : null
+            ))
+            .toList();
+    }
+
+    public void recommendFriendToEmployer(final ViewJson.RecommendFriendForm form) {
+        final UserEntity user = this.current.user();
+        final UUID friendId = UUID.fromString(form.friendId());
+        final UUID opportunityId = UUID.fromString(form.opportunityId());
+
+        // Check friend
+        if (this.friends.findFriendship(user.id(), friendId).isEmpty()) {
+            throw new IllegalStateException("You can only recommend a friend");
+        }
+
+        final var opportunity = this.opportunities.findById(opportunityId)
+            .orElseThrow(() -> new MissingEntityException("Opportunity is missing"));
+
+        // Check if current user has a positive application
+        final var application = this.applications.findByOpportunityIdAndApplicantId(opportunityId, user.id())
+            .filter(app -> app.status() == ApplicationStatus.ACCEPTED)
+            .orElseThrow(() -> new IllegalStateException("You can only recommend if your application is accepted"));
+
+        // Find employer user mapping to this opportunity's company
+        final UserEntity employer = this.users.findAll().stream()
+            .filter(u -> opportunity.companyId().equals(u.companyId()))
+            .findFirst()
+            .orElseThrow(() -> new MissingEntityException("Employer is missing"));
+
+        if (this.recommendations.findRecommendation(user.id(), employer.id(), friendId, opportunityId).isPresent()) {
+            throw new IllegalStateException("Вы уже порекомендовали возможность своему другу");
+        }
+
+        this.recommendations.save(new RecommendationEntity(
+            user.id(),
+            employer.id(),
+            friendId,
+            opportunityId,
+            form.comment()
+        ));
+    }
+
+    public void recommendEmployerToFriend(final ViewJson.RecommendEmployerForm form) {
+        final UserEntity user = this.current.user();
+        final UUID friendId = UUID.fromString(form.friendId()); 
+        final UUID companyId = UUID.fromString(form.companyId());
+
+        if (this.friends.findFriendship(user.id(), friendId).isEmpty()) {
+            throw new IllegalStateException("You can only recommend to a friend");
+        }
+
+        final UserEntity employer = this.users.findAll().stream()
+            .filter(u -> companyId.equals(u.companyId()) && u.role() == UserRole.EMPLOYER)
+            .findFirst()
+            .orElseThrow(() -> new MissingEntityException("Employer for this company is missing"));
+
+        final UUID employerId = employer.id();
+
+        if (this.recommendations.findRecommendation(user.id(), friendId, employerId, null).isPresent()) {
+            throw new IllegalStateException("Вы уже порекомендовали возможность своему другу");
+        }
+
+        this.recommendations.save(new RecommendationEntity(
+            user.id(),
+            friendId,
+            employerId,
+            null,
+            form.comment()
+        ));
+    }
+
+    public void recommendOpportunityToFriend(final ViewJson.RecommendOpportunityForm form) {
+        final UserEntity user = this.current.user();
+        final UUID friendId = UUID.fromString(form.friendId());
+        final UUID opportunityId = UUID.fromString(form.opportunityId());
+
+        if (this.friends.findFriendship(user.id(), friendId).isEmpty()) {
+            throw new IllegalStateException("You can only recommend to a friend");
+        }
+
+        final var opportunity = this.opportunities.findById(opportunityId)
+            .orElseThrow(() -> new MissingEntityException("Opportunity is missing"));
+
+        if (this.recommendations.findRecommendation(user.id(), friendId, null, opportunityId).isPresent()) {
+            throw new IllegalStateException("You already recommended this opportunity to this friend");
+        }
+
+        this.recommendations.save(new RecommendationEntity(
+            user.id(),
+            friendId,
+            null,
+            opportunityId,
+            form.comment()
+        ));
     }
 
     private List<String> list(final List<String> items) {

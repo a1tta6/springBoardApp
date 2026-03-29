@@ -113,4 +113,13 @@ public final class DbTables {
     public static final Field<String> VERIFICATION_REQUEST_REJECTION_REASON = field(unquotedName("verification_requests", "rejection_reason"), String.class);
     public static final Field<Timestamp> VERIFICATION_REQUEST_CREATED_AT = field(unquotedName("verification_requests", "created_at"), Timestamp.class);
     public static final Field<Timestamp> VERIFICATION_REQUEST_PROCESSED_AT = field(unquotedName("verification_requests", "processed_at"), Timestamp.class);
+
+    public static final Table<?> RECOMMENDATIONS = table(unquotedName("recommendations"));
+    public static final Field<UUID> RECOMMENDATION_ID = field(unquotedName("recommendations", "id"), UUID.class);
+    public static final Field<UUID> RECOMMENDATION_REFERRER_ID = field(unquotedName("recommendations", "referrer_id"), UUID.class);
+    public static final Field<UUID> RECOMMENDATION_REFEREE_ID = field(unquotedName("recommendations", "referee_id"), UUID.class);
+    public static final Field<UUID> RECOMMENDATION_SUBJECT_USER_ID = field(unquotedName("recommendations", "subject_user_id"), UUID.class);
+    public static final Field<UUID> RECOMMENDATION_OPPORTUNITY_ID = field(unquotedName("recommendations", "opportunity_id"), UUID.class);
+    public static final Field<String> RECOMMENDATION_COMMENT = field(unquotedName("recommendations", "comment"), String.class);
+    public static final Field<Timestamp> RECOMMENDATION_CREATED_AT = field(unquotedName("recommendations", "created_at"), Timestamp.class);
 }

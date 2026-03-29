@@ -4,9 +4,11 @@ import { CompanyProfile as CompanyProfileType, Opportunity, statusMap } from '..
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { appApi } from '../api/appApi';
+import { appApi, Friend } from '../api/appApi';
 import { toast } from 'sonner';
-import { ArrowLeft, Globe, MapPin, CheckCircle, Briefcase, Building2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { ArrowLeft, Globe, MapPin, CheckCircle, Briefcase, Building2, UserPlus } from 'lucide-react';
+import { Input } from '../components/ui/input';
 
 const opportunityTypeLabels: Record<string, string> = {
   internship: 'Стажировка',
@@ -24,8 +26,13 @@ const workFormatLabels: Record<string, string> = {
 export const CompanyProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [profile, setProfile] = useState<CompanyProfileType | null>(null);
+  const [friends, setFriends] = useState<Friend[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRecommending, setIsRecommending] = useState(false);
+  const [recommendFriendId, setRecommendFriendId] = useState('');
+  const [recommendComment, setRecommendComment] = useState('');
 
   useEffect(() => {
     async function load() {
@@ -33,6 +40,10 @@ export const CompanyProfilePage: React.FC = () => {
       try {
         const data = await appApi.getCompanyProfile(id);
         setProfile(data);
+        if (currentUser?.role === 'applicant') {
+          const friendsData = await appApi.getFriends();
+          setFriends(friendsData);
+        }
       } catch (error) {
         toast.error('Не удалось загрузить профиль компании');
       } finally {
@@ -136,6 +147,65 @@ export const CompanyProfilePage: React.FC = () => {
                 {company.socialLinks && (
                   <div className="text-sm text-gray-600 whitespace-pre-wrap pt-2 border-t">
                     {company.socialLinks}
+                  </div>
+                )}
+                
+                {currentUser?.role === 'applicant' && (
+                  <div className="pt-4 border-t mt-4">
+                    {isRecommending ? (
+                      <div className="space-y-3 bg-gray-50 p-3 rounded-lg">
+                        <div className="font-semibold text-sm">Порекомендовать работодателя</div>
+                        {friends.length === 0 ? (
+                          <p className="text-sm text-gray-500">У вас пока нет друзей.</p>
+                        ) : (
+                          <>
+                            <select 
+                                className="w-full border p-2 rounded text-sm"
+                                value={recommendFriendId}
+                                onChange={e => setRecommendFriendId(e.target.value)}
+                            >
+                                <option value="">Выберите друга...</option>
+                                {friends.map(f => (
+                                    <option key={f.userId} value={f.userId}>{f.displayName} ({f.email})</option>
+                                ))}
+                            </select>
+                            <Input 
+                                placeholder="Комментарий (необязательно)" 
+                                value={recommendComment} 
+                                onChange={e => setRecommendComment(e.target.value)} 
+                            />
+                            <div className="flex gap-2">
+                                <Button 
+                                    size="sm" 
+                                    disabled={!recommendFriendId}
+                                    onClick={() => {
+                                        appApi.recommendEmployerToFriend({
+                                            friendId: recommendFriendId,
+                                            companyId: company.id,
+                                            comment: recommendComment
+                                        }).then(() => {
+                                            toast.success('Рекомендация отправлена');
+                                            setIsRecommending(false);
+                                        }).catch(err => {
+                                            toast.error(err instanceof Error ? err.message : 'Ошибка при отправке');
+                                        });
+                                    }}
+                                >Отправить</Button>
+                                <Button size="sm" variant="outline" onClick={() => setIsRecommending(false)}>Отмена</Button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                      <Button variant="outline" className="w-full" onClick={() => {
+                        setIsRecommending(true);
+                        setRecommendFriendId('');
+                        setRecommendComment('');
+                      }}>
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Рекомендовать другу
+                      </Button>
+                    )}
                   </div>
                 )}
               </CardContent>

@@ -61,6 +61,11 @@ public final class EmployerEndpoint {
         this.app.status(applicationId, form);
     }
 
+    @GetMapping("/recommendations")
+    public List<ViewJson.Recommendation> recommendations() {
+        return this.app.getEmployerRecommendations();
+    }
+
     @GetMapping("/verification")
     public ViewJson.VerificationRequest verificationStatus() {
         return this.app.getVerificationStatus();

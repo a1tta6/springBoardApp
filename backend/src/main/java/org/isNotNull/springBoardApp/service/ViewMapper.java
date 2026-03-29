@@ -116,6 +116,24 @@ public final class ViewMapper {
         );
     }
 
+    public ViewJson.Recommendation recommendation(
+        final RecommendationEntity rec,
+        final UserEntity referrer,
+        final UserEntity referee,
+        final UserEntity subjectUser,
+        final OpportunityEntity opportunity
+    ) {
+        return new ViewJson.Recommendation(
+            rec.id().toString(),
+            referrer != null ? this.user(referrer) : null,
+            referee != null ? this.user(referee) : null,
+            subjectUser != null ? this.user(subjectUser) : null,
+            opportunity != null ? this.opportunity(opportunity) : null,
+            rec.comment(),
+            rec.createdAt()
+        );
+    }
+
     private String text(final Enum<?> value) {
         return value.name().toLowerCase().replace('_', '-');
     }
