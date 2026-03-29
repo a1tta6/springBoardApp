@@ -4,6 +4,7 @@ import org.isNotNull.springBoardApp.service.AppService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -35,8 +36,13 @@ public final class PublicEndpoint {
     }
 
     @GetMapping("/opportunities")
-    public List<ViewJson.Opportunity> opportunities() {
-        return this.app.opportunities();
+    public List<ViewJson.Opportunity> opportunities(
+        @RequestParam(required = false) final Double minLat,
+        @RequestParam(required = false) final Double maxLat,
+        @RequestParam(required = false) final Double minLng,
+        @RequestParam(required = false) final Double maxLng
+    ) {
+        return this.app.opportunities(minLat, maxLat, minLng, maxLng);
     }
 
     @GetMapping("/opportunities/{opportunityId}")

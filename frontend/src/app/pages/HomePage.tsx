@@ -26,19 +26,18 @@ export const HomePage: React.FC = () => {
   const [appliedOpportunities, setAppliedOpportunities] = useState<string[]>([]);
   const [filteredOpportunities, setFilteredOpportunities] = useState<Opportunity[]>([]);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [mapBounds, setMapBounds] = useState<{ minLat: number; maxLat: number; minLng: number; maxLng: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const [nextTags, nextCompanies, nextOpportunities] = await Promise.all([
+        const [nextTags, nextCompanies] = await Promise.all([
           appApi.getTags(),
           appApi.getCompanies(),
-          appApi.getOpportunities(),
         ]);
         setTags(nextTags);
         setCompanies(nextCompanies);
-        setOpportunities(nextOpportunities);
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Не удалось загрузить каталог');
       } finally {
@@ -48,6 +47,21 @@ export const HomePage: React.FC = () => {
 
     void load();
   }, []);
+
+  useEffect(() => {
+    async function loadOpportunities() {
+      try {
+        if (viewMode === 'map' && !mapBounds) {
+          return;
+        }
+        const nextOpportunities = await appApi.getOpportunities(viewMode === 'map' ? mapBounds! : undefined);
+        setOpportunities(nextOpportunities);
+      } catch (error) {
+        toast.error('Не удалось загрузить мероприятия');
+      }
+    }
+    void loadOpportunities();
+  }, [mapBounds, viewMode]);
 
   useEffect(() => {
     async function loadFavorites() {
@@ -305,7 +319,12 @@ export const HomePage: React.FC = () => {
           <div className="text-center py-12 text-gray-500">Загрузка каталога...</div>
         ) : viewMode === 'map' ? (
           <div className="h-[600px] rounded-lg overflow-hidden shadow-lg">
-            <OpportunityMap opportunities={filteredOpportunities} companies={companies} favorites={favorites} />
+            <OpportunityMap 
+              opportunities={filteredOpportunities} 
+              companies={companies} 
+              favorites={favorites} 
+              onBoundsChange={setMapBounds}
+            />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

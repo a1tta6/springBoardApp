@@ -61,8 +61,14 @@ public final class AppService {
         return this.companies.findAll().stream().map(this.view::company).toList();
     }
 
-    public List<ViewJson.Opportunity> opportunities() {
-        return this.opportunities.findAll().stream()
+    public List<ViewJson.Opportunity> opportunities(final Double minLat, final Double maxLat, final Double minLng, final Double maxLng) {
+        final List<OpportunityEntity> items;
+        if (minLat != null && maxLat != null && minLng != null && maxLng != null) {
+            items = this.opportunities.findByBounds(minLat, maxLat, minLng, maxLng);
+        } else {
+            items = this.opportunities.findAll();
+        }
+        return items.stream()
             .sorted(Comparator.comparing(OpportunityEntity::publishedDate).reversed())
             .map(this.view::opportunity)
             .toList();

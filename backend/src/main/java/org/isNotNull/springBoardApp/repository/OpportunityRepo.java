@@ -131,6 +131,14 @@ public class OpportunityRepo {
         return this.dsl.selectFrom(OPPORTUNITIES).where(OPPORTUNITY_STATUS.eq(status.name())).fetch(this::map);
     }
 
+    public List<OpportunityEntity> findByBounds(final double minLat, final double maxLat, final double minLng, final double maxLng) {
+        return this.dsl.selectFrom(OPPORTUNITIES)
+            .where(OPPORTUNITY_LATITUDE.between(minLat, maxLat))
+            .and(OPPORTUNITY_LONGITUDE.between(minLng, maxLng))
+            .and(OPPORTUNITY_STATUS.eq(OpportunityStatus.ACTIVE.name()))
+            .fetch(this::map);
+    }
+
     private OpportunityEntity map(final Record record) {
         return new OpportunityEntity(
             record.get(OPPORTUNITY_ID),
