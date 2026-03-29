@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { Application, Company, Opportunity, statusMap } from '../types';
@@ -11,13 +11,14 @@ import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
 import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { toast } from 'sonner';
-import { LogOut, Home, User as UserIcon, Briefcase, Star, Settings, CheckCircle, Clock, XCircle, Search, UserPlus, UserMinus } from 'lucide-react';
+import { LogOut, Home, User as UserIcon, Briefcase, Star, Settings, CheckCircle, Clock, XCircle, Search, UserPlus, UserMinus, Camera } from 'lucide-react';
 import { appApi, Friend, type User } from '../api/appApi';
 import { Recommendation } from '../types';
 
 export const ApplicantDashboard: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const { currentUser, logout, syncUser } = useAuth();
     const [activeTab, setActiveTab] = useState<'profile' | 'applications' | 'favorites' | 'settings' | 'friends' | 'recommendations'>('profile');
     const [applications, setApplications] = useState<Application[]>([]);
@@ -45,6 +46,7 @@ export const ApplicantDashboard: React.FC = () => {
         portfolioLinks: '',
         resume: '',
         contacts: '',
+        photo: '',
     });
     const [privacySettings, setPrivacySettings] = useState({
         showApplications: false,
@@ -65,6 +67,7 @@ export const ApplicantDashboard: React.FC = () => {
             portfolioLinks: (currentUser.portfolioLinks || []).join(', '),
             resume: currentUser.resume || '',
             contacts: (currentUser.contacts || []).join(', '),
+            photo: currentUser.photo || '',
         });
         setPrivacySettings({
             showApplications: currentUser.privacySettings?.showApplications || false,
@@ -129,11 +132,27 @@ export const ApplicantDashboard: React.FC = () => {
                 portfolioLinks: profile.portfolioLinks.split(',').map((item) => item.trim()).filter(Boolean),
                 resume: profile.resume,
                 contacts: profile.contacts.split(',').map((item) => item.trim()).filter(Boolean),
+                photo: profile.photo,
             });
             syncUser(user);
             toast.success('Сохранено');
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Ошибка при сохранении профиля');
+        }
+    };
+
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 1024 * 1024) {
+                toast.error('Фотография слишком большая (макс. 1МБ)');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setProfile(prev => ({ ...prev, photo: reader.result as string }));
+            };
+            reader.readAsDataURL(file);
         }
     };
 
@@ -198,15 +217,32 @@ export const ApplicantDashboard: React.FC = () => {
                 </div>
             </header>
 
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept="image/*" 
+                onChange={handlePhotoChange} 
+            />
+
             <div className="container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <Card className="lg:col-span-1">
                     <CardContent className="pt-6">
                         <div className="flex flex-col items-center text-center">
-                            <Avatar className="w-20 h-20 mb-3">
-                                <AvatarFallback className="text-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                                    {currentUser.displayName.charAt(0)}
-                                </AvatarFallback>
-                            </Avatar>
+                            <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                                <Avatar className="w-20 h-20 mb-3 border-2 border-white shadow-sm">
+                                    {profile.photo ? (
+                                        <img src={profile.photo} alt={profile.displayName} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <AvatarFallback className="text-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                                            {profile.displayName.charAt(0)}
+                                        </AvatarFallback>
+                                    )}
+                                </Avatar>
+                                <div className="mb-3 absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Camera className="text-white w-6 h-6" />
+                                </div>
+                            </div>
                             <h3 className="font-semibold text-lg">{currentUser.displayName}</h3>
                             <p className="text-sm text-gray-500">{currentUser.email}</p>
                         </div>

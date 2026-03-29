@@ -42,6 +42,7 @@ public final class DbTables {
     public static final Field<Boolean> USER_SHOW_RESUME = field(unquotedName("users", "show_resume"), Boolean.class);
     public static final Field<UUID> USER_COMPANY_ID = field(unquotedName("users", "company_id"), UUID.class);
     public static final Field<Boolean> USER_BLOCKED = field(unquotedName("users", "blocked"), Boolean.class);
+    public static final Field<String> USER_PHOTO = field(unquotedName("users", "photo"), String.class);
 
     public static final Table<?> COMPANIES = table(unquotedName("companies"));
     public static final Field<UUID> COMPANY_ID = field(unquotedName("companies", "id"), UUID.class);

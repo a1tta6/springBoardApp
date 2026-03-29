@@ -33,7 +33,8 @@ public final class ViewJson {
         String resume,
         List<String> contacts,
         Privacy privacySettings,
-        String companyId
+        String companyId,
+        String photo
     ) {
     }
 
@@ -113,7 +114,8 @@ public final class ViewJson {
         List<String> skills,
         List<String> portfolioLinks,
         String resume,
-        List<String> contacts
+        List<String> contacts,
+        String photo
     ) {
     }
 

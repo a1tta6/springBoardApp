@@ -48,6 +48,8 @@ public final class UserEntity {
 
     private final boolean blocked;
 
+    private final String photo;
+
     public UserEntity(
         final UUID id,
         final String email,
@@ -66,7 +68,8 @@ public final class UserEntity {
         final boolean showApplications,
         final boolean showResume,
         final UUID companyId,
-        final boolean blocked
+        final boolean blocked,
+        final String photo
     ) {
         this.id = id;
         this.email = email;
@@ -86,6 +89,7 @@ public final class UserEntity {
         this.showResume = showResume;
         this.companyId = companyId;
         this.blocked = blocked;
+        this.photo = photo;
     }
 
     public UserEntity(
@@ -113,7 +117,8 @@ public final class UserEntity {
             false,
             true,
             null,
-            false
+            false,
+            null
         );
     }
 
@@ -135,6 +140,7 @@ public final class UserEntity {
     public boolean showResume() { return this.showResume; }
     public UUID companyId() { return this.companyId; }
     public boolean blocked() { return this.blocked; }
+    public String photo() { return this.photo; }
 
     public UserEntity profile(
         final String displayName,
@@ -145,7 +151,8 @@ public final class UserEntity {
         final List<String> stack,
         final List<String> links,
         final String cv,
-        final List<String> phonebook
+        final List<String> phonebook,
+        final String image
     ) {
         return new UserEntity(
             this.id,
@@ -165,7 +172,8 @@ public final class UserEntity {
             this.showApplications,
             this.showResume,
             this.companyId,
-            this.blocked
+            this.blocked,
+            image
         );
     }
 
@@ -188,7 +196,8 @@ public final class UserEntity {
             applications,
             resumeVisibility,
             this.companyId,
-            this.blocked
+            this.blocked,
+            this.photo
         );
     }
 
@@ -211,7 +220,8 @@ public final class UserEntity {
             this.showApplications,
             this.showResume,
             reference,
-            this.blocked
+            this.blocked,
+            this.photo
         );
     }
 
@@ -234,7 +244,8 @@ public final class UserEntity {
             this.showApplications,
             this.showResume,
             this.companyId,
-            true
+            true,
+            this.photo
         );
     }
 }

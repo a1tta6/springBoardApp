@@ -69,6 +69,7 @@ export const appApi = {
     portfolioLinks: string[];
     resume: string;
     contacts: string[];
+    photo?: string;
   }) {
     return request<User>('/v1/applicant/profile', {
       method: 'PUT',

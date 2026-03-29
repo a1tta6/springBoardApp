@@ -134,7 +134,8 @@ public final class DataSeed implements CommandLineRunner {
             List.of("JavaScript", "React", "TypeScript", "Git"),
             List.of("https://github.com/ivanpetrov"),
             "Frontend developer with pet project experience",
-            List.of()
+            List.of(),
+            null
         ).privacy(false, true);
         final UserEntity savedApplicant = this.users.save(applicant);
 
@@ -154,7 +155,8 @@ public final class DataSeed implements CommandLineRunner {
             List.of(),
             List.of(),
             null,
-            List.of()
+            List.of(),
+           null
         )
         .privacy(false, true);
         this.users.save(employer);

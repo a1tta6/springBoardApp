@@ -71,6 +71,7 @@ public class UserRepo {
                 .set(USER_SHOW_RESUME, user.showResume())
                 .set(USER_COMPANY_ID, user.companyId())
                 .set(USER_BLOCKED, user.blocked())
+                .set(USER_PHOTO, user.photo())
                 .execute();
         } else {
             this.dsl.update(USERS)
@@ -91,6 +92,7 @@ public class UserRepo {
                 .set(USER_SHOW_RESUME, user.showResume())
                 .set(USER_COMPANY_ID, user.companyId())
                 .set(USER_BLOCKED, user.blocked())
+                .set(USER_PHOTO, user.photo())
                 .where(USER_ID.eq(id))
                 .execute();
         }
@@ -112,7 +114,8 @@ public class UserRepo {
             user.showApplications(),
             user.showResume(),
             user.companyId(),
-            user.blocked()
+            user.blocked(),
+            user.photo()
         );
     }
 
@@ -139,7 +142,8 @@ public class UserRepo {
             Boolean.TRUE.equals(record.get(USER_SHOW_APPLICATIONS)),
             !Boolean.FALSE.equals(record.get(USER_SHOW_RESUME)),
             record.get(USER_COMPANY_ID),
-            Boolean.TRUE.equals(record.get(USER_BLOCKED))
+            Boolean.TRUE.equals(record.get(USER_BLOCKED)),
+            record.get(USER_PHOTO)
         );
     }
 }

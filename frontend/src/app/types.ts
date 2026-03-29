@@ -51,6 +51,7 @@ export interface User {
   };
   // Для работодателя
   companyId?: string;
+  photo?: string;
 }
 
 export interface Opportunity {

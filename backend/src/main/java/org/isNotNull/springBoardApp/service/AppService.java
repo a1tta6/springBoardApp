@@ -108,7 +108,8 @@ public final class AppService {
             this.list(form.skills()),
             this.list(form.portfolioLinks()),
             form.resume(),
-            this.list(form.contacts())
+            this.list(form.contacts()),
+            form.photo()
         );
         return this.view.user(this.users.save(user));
     }

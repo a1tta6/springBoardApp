@@ -8,6 +8,7 @@ import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Textarea } from '../components/ui/textarea';
+import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { toast } from 'sonner';
 import { LogOut, Home, Shield, CheckCircle, XCircle, Search, AlertCircle, Clock } from 'lucide-react';
 import { appApi, VerificationRequest } from '../api/appApi';
@@ -256,9 +257,20 @@ export const CuratorDashboard: React.FC = () => {
               <CardContent className="space-y-3">
                 {[...applicants, ...employers].map((user) => (
                   <div key={user.id} className="border rounded-lg p-4 flex justify-between">
-                    <div>
-                      <h4 className="font-semibold">{user.displayName}</h4>
-                      <p className="text-sm text-gray-500">{user.email}</p>
+                    <div className="flex items-center gap-4">
+                      <Avatar className="w-10 h-10 border bg-gray-50">
+                        {user.photo ? (
+                          <img src={user.photo} alt={user.displayName} className="w-full h-full object-cover" />
+                        ) : (
+                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-600 text-white text-xs">
+                            {user.displayName.charAt(0)}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div>
+                        <h4 className="font-semibold">{user.displayName}</h4>
+                        <p className="text-sm text-gray-500">{user.email}</p>
+                      </div>
                     </div>
                     <Button variant="destructive" onClick={() => void handleBlockUser(user.id)}><XCircle className="w-4 h-4 mr-2" />Заблокировать</Button>
                   </div>

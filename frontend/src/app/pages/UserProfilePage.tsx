@@ -198,10 +198,14 @@ export const UserProfilePage: React.FC = () => {
           <Card className="mb-6">
             <CardContent className="pt-6">
               <div className="flex items-start gap-6">
-                <Avatar className="w-24 h-24">
-                  <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                    {user.displayName.charAt(0)}
-                  </AvatarFallback>
+                <Avatar className="w-24 h-24 border-2 border-white shadow-sm">
+                  {user.photo ? (
+                    <img src={user.photo} alt={user.displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                      {user.displayName.charAt(0)}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
                 
                 <div className="flex-1">

@@ -33,7 +33,8 @@ public final class ViewMapper {
             user.resume(),
             List.copyOf(user.contacts()),
             new ViewJson.Privacy(user.showApplications(), user.showResume()),
-            Optional.ofNullable(user.companyId()).map(UUID::toString).orElse(null)
+            Optional.ofNullable(user.companyId()).map(UUID::toString).orElse(null),
+            user.photo()
         );
     }
 
