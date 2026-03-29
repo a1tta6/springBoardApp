@@ -24,7 +24,7 @@ jobs:
           cd /home/deployuser/springBoardApp
           git pull
           echo "${{ secrets.SSL_PRIVATE_KEY }}" > certs/privkey.pem
-          cat certs/privkey.pem certs/fullchain.pem > certs/site.pem
+          cat certs/fullchain.pem > certs/site.pem
           export VITE_API_URL=${{ secrets.VITE_API_URL }}
           export DB_NAME=${{ secrets.DB_NAME }}
           export DB_URL=${{ secrets.DB_URL }}
