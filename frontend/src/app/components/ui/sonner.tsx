@@ -7,6 +7,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme="light"
       className="toaster group"
+      closeButton
+      duration={3000}
       style={
         {
           "--normal-bg": "var(--popover)",

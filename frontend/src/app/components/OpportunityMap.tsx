@@ -1,5 +1,7 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { useNavigate } from 'react-router';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { Company, Opportunity } from '../types';
@@ -126,7 +128,7 @@ export const OpportunityMap: React.FC<OpportunityMapProps> = ({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapEvents onBoundsChange={onBoundsChange} />
-        <MarkerClusterGroup 
+        <MarkerClusterGroup
           chunkedLoading
           iconCreateFunction={(cluster: any) => {
             const count = cluster.getChildCount();
@@ -192,7 +194,7 @@ export const OpportunityMap: React.FC<OpportunityMapProps> = ({
                         {opportunity.workFormat === 'office' ? 'Офис' : opportunity.workFormat === 'hybrid' ? 'Гибрид' : 'Удаленно'}
                       </Badge>
                     </div>
-                    <a 
+                    <a
                       href={`/opportunity/${opportunity.id}`}
                       className="block mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium"
                       onClick={(e) => {

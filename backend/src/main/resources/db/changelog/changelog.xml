@@ -9,4 +9,5 @@
     <include file="db/changelog/v1/000-enable-postgis.xml"/>
     <include file="db/changelog/v1/001-initial-schema.xml"/>
     <include file="db/changelog/v1/002-friends-schema.xml"/>
+    <include file="db/changelog/v1/003-verification-schema.xml"/>
 </databaseChangeLog>

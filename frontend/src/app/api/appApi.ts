@@ -37,8 +37,8 @@ export const appApi = {
   },
 
   async getOpportunities(bounds?: { minLat: number; maxLat: number; minLng: number; maxLng: number }) {
-    const params = bounds 
-      ? `?minLat=${bounds.minLat}&maxLat=${bounds.maxLat}&minLng=${bounds.minLng}&maxLng=${bounds.maxLng}` 
+    const params = bounds
+      ? `?minLat=${bounds.minLat}&maxLat=${bounds.maxLat}&minLng=${bounds.minLng}&maxLng=${bounds.maxLng}`
       : '';
     return (await request<ApiOpportunity[]>(`/v1/opportunities${params}`)).map(opportunity);
   },

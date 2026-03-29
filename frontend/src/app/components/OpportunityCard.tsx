@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { Company, Opportunity, Tag } from '../types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './ui/card';
 import { Badge } from './ui/badge';
@@ -98,7 +98,9 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
             <CardTitle className="mb-1">{opportunity.title}</CardTitle>
             <CardDescription className="flex items-center gap-2">
               <Building2 className="w-4 h-4" />
-              {company?.name}
+              <Link to={`/company/${company?.id}`} className="hover:text-blue-600">
+                {company?.name}
+              </Link>
             </CardDescription>
           </div>
           {onToggleFavorite && (

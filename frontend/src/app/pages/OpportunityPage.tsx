@@ -487,65 +487,46 @@ export const OpportunityPage: React.FC = () => {
           {company && (
             <Card>
               <CardHeader>
-                <CardTitle>О компании</CardTitle>
+                <CardTitle>
+                  <Link to={`/company/${company.id}`} className="hover:text-blue-600">
+                    О компании
+                  </Link>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-1">{company.name}</h4>
-                    {company.industry && (
-                      <p className="text-gray-600 text-sm">Отрасль: {company.industry}</p>
+                  <div className="flex items-center gap-4">
+                    {company.logo ? (
+                      <img src={company.logo} alt={company.name} className="w-20 h-20 object-contain border rounded-lg" />
+                    ) : (
+                      <div className="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <Building2 className="w-10 h-10 text-gray-400" />
+                      </div>
                     )}
+                    <div>
+                      <Link to={`/company/${company.id}`} className="font-medium hover:text-blue-600">
+                        {company.name}
+                      </Link>
+                    </div>
                   </div>
                   
-                  {company.description && (
-                    <p className="text-gray-700">{company.description}</p>
+                  {(company.inn || company.ogrn) && (
+                    <div className="text-sm text-gray-600 space-y-1">
+                      {company.inn && <p>ИНН: {company.inn}</p>}
+                      {company.ogrn && <p>ОГРН: {company.ogrn}</p>}
+                    </div>
                   )}
 
-                  <div className="flex flex-wrap gap-3">
-                    {company.website && (
-                      <a
-                        href={company.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
-                      >
-                        <Globe className="w-4 h-4" />
-                        Сайт компании
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
-                    {company.socialLinks?.linkedin && (
-                      <a
-                        href={company.socialLinks.linkedin}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        LinkedIn
-                      </a>
-                    )}
-                    {company.socialLinks?.vk && (
-                      <a
-                        href={company.socialLinks.vk}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        ВКонтакте
-                      </a>
-                    )}
-                    {company.socialLinks?.telegram && (
-                      <a
-                        href={`https://t.me/${company.socialLinks.telegram.replace('@', '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        Telegram
-                      </a>
-                    )}
-                  </div>
+                  {company.address && (
+                    <p className="text-gray-700">{company.address}</p>
+                  )}
+
+                  {company.socialLinks && (
+                    <div className="text-sm text-gray-600 whitespace-pre-wrap">{company.socialLinks}</div>
+                  )}
+                  {company.bio && (
+                    <p className="text-sm text-gray-700 mt-2">{company.bio}</p>
+                  )}
                 </div>
               </CardContent>
             </Card>

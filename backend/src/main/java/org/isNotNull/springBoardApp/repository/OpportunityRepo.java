@@ -139,6 +139,10 @@ public class OpportunityRepo {
             .fetch(this::map);
     }
 
+    public void delete(final UUID id) {
+        this.dsl.deleteFrom(OPPORTUNITIES).where(OPPORTUNITY_ID.eq(id)).execute();
+    }
+
     private OpportunityEntity map(final Record record) {
         return new OpportunityEntity(
             record.get(OPPORTUNITY_ID),

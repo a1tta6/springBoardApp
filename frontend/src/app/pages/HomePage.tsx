@@ -126,7 +126,7 @@ export const HomePage: React.FC = () => {
 
   const toggleFavorite = async (id: string) => {
     if (currentUser?.role !== 'applicant') {
-      toast.error('Добавлять в избранное могут только соискател');
+      toast.error('Добавлять в избранное могут только соискатели');
       return;
     }
 

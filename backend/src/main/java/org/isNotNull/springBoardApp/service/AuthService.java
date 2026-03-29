@@ -76,8 +76,9 @@ public final class AuthService {
         if (role == UserRole.EMPLOYER) {
             final CompanyEntity company = this.companies.save(new CompanyEntity(
                 form.displayName(),
-                "Company profile is waiting for completion",
-                "Unknown",
+                null,
+                null,
+                null,
                 null,
                 null,
                 null,

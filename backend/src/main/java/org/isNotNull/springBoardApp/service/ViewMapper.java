@@ -41,10 +41,13 @@ public final class ViewMapper {
         return new ViewJson.Company(
             company.id().toString(),
             company.name(),
-            company.description(),
-            company.industry(),
+            company.inn(),
+            company.ogrn(),
+            company.address(),
             company.website(),
-            new ViewJson.Social(company.linkedin(), company.vk(), company.telegram()),
+            company.logo(),
+            company.socialLinks(),
+            company.bio(),
             company.verified(),
             company.email()
         );
@@ -99,6 +102,17 @@ public final class ViewMapper {
             user.university(),
             friend.status(),
             friend.createdAt()
+        );
+    }
+
+    public ViewJson.VerificationRequest verificationRequest(final VerificationRequestEntity req) {
+        return new ViewJson.VerificationRequest(
+            req.id().toString(),
+            req.companyId().toString(),
+            req.status(),
+            req.rejectionReason(),
+            req.createdAt(),
+            req.processedAt()
         );
     }
 

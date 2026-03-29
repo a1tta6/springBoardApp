@@ -46,12 +46,13 @@ public final class DbTables {
     public static final Table<?> COMPANIES = table(unquotedName("companies"));
     public static final Field<UUID> COMPANY_ID = field(unquotedName("companies", "id"), UUID.class);
     public static final Field<String> COMPANY_NAME = field(unquotedName("companies", "name"), String.class);
-    public static final Field<String> COMPANY_DESCRIPTION = field(unquotedName("companies", "description"), String.class);
-    public static final Field<String> COMPANY_INDUSTRY = field(unquotedName("companies", "industry"), String.class);
+    public static final Field<String> COMPANY_INN = field(unquotedName("companies", "inn"), String.class);
+    public static final Field<String> COMPANY_OGRN = field(unquotedName("companies", "ogrn"), String.class);
+    public static final Field<String> COMPANY_ADDRESS = field(unquotedName("companies", "address"), String.class);
     public static final Field<String> COMPANY_WEBSITE = field(unquotedName("companies", "website"), String.class);
-    public static final Field<String> COMPANY_LINKEDIN = field(unquotedName("companies", "linkedin"), String.class);
-    public static final Field<String> COMPANY_VK = field(unquotedName("companies", "vk"), String.class);
-    public static final Field<String> COMPANY_TELEGRAM = field(unquotedName("companies", "telegram"), String.class);
+    public static final Field<String> COMPANY_LOGO = field(unquotedName("companies", "logo"), String.class);
+    public static final Field<String> COMPANY_SOCIAL_LINKS = field(unquotedName("companies", "social_links"), String.class);
+    public static final Field<String> COMPANY_BIO = field(unquotedName("companies", "bio"), String.class);
     public static final Field<Boolean> COMPANY_VERIFIED = field(unquotedName("companies", "verified"), Boolean.class);
     public static final Field<String> COMPANY_EMAIL = field(unquotedName("companies", "email"), String.class);
 
@@ -104,4 +105,12 @@ public final class DbTables {
     public static final Field<UUID> FRIEND_ADDRESSEE_ID = field(unquotedName("friends", "addressee_id"), UUID.class);
     public static final Field<String> FRIEND_STATUS = field(unquotedName("friends", "status"), String.class);
     public static final Field<Timestamp> FRIEND_CREATED_AT = field(unquotedName("friends", "created_at"), Timestamp.class);
+
+    public static final Table<?> VERIFICATION_REQUESTS = table(unquotedName("verification_requests"));
+    public static final Field<UUID> VERIFICATION_REQUEST_ID = field(unquotedName("verification_requests", "id"), UUID.class);
+    public static final Field<UUID> VERIFICATION_REQUEST_COMPANY_ID = field(unquotedName("verification_requests", "company_id"), UUID.class);
+    public static final Field<String> VERIFICATION_REQUEST_STATUS = field(unquotedName("verification_requests", "status"), String.class);
+    public static final Field<String> VERIFICATION_REQUEST_REJECTION_REASON = field(unquotedName("verification_requests", "rejection_reason"), String.class);
+    public static final Field<Timestamp> VERIFICATION_REQUEST_CREATED_AT = field(unquotedName("verification_requests", "created_at"), Timestamp.class);
+    public static final Field<Timestamp> VERIFICATION_REQUEST_PROCESSED_AT = field(unquotedName("verification_requests", "processed_at"), Timestamp.class);
 }
