@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, Link } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { Company, Opportunity, User } from '../types';
 import { Button } from '../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Textarea } from '../components/ui/textarea';
 import { toast } from 'sonner';
-import { LogOut, Home, Shield, CheckCircle, XCircle, Search } from 'lucide-react';
-import { appApi } from '../api/appApi';
+import { LogOut, Home, Shield, CheckCircle, XCircle, Search, AlertCircle, Clock } from 'lucide-react';
+import { appApi, VerificationRequest } from '../api/appApi';
 
 export const CuratorDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -17,21 +18,26 @@ export const CuratorDashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [companies, setCompanies] = useState<Company[]>([]);
   const [pendingCompanies, setPendingCompanies] = useState<Company[]>([]);
+  const [verificationRequests, setVerificationRequests] = useState<VerificationRequest[]>([]);
   const [pendingOpportunities, setPendingOpportunities] = useState<Opportunity[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [rejectReason, setRejectReason] = useState<Record<string, string>>({});
+  const [showRejectForm, setShowRejectForm] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     async function load() {
       try {
-        const [nextCompanies, nextPendingCompanies, nextPendingOpportunities, nextUsers] = await Promise.all([
+        const [nextCompanies, nextPendingCompanies, nextPendingVerifications, nextPendingOpportunities, nextUsers] = await Promise.all([
           appApi.getCompanies(),
           appApi.getCuratorPendingCompanies(),
+          appApi.getCuratorPendingVerifications(),
           appApi.getCuratorPendingOpportunities(),
           appApi.getCuratorUsers(),
         ]);
         setCompanies(nextCompanies);
         setPendingCompanies(nextPendingCompanies);
+        setVerificationRequests(nextPendingVerifications);
         setPendingOpportunities(nextPendingOpportunities);
         setUsers(nextUsers);
       } catch (error) {
@@ -59,6 +65,37 @@ export const CuratorDashboard: React.FC = () => {
       toast.success('Компания верифицирована');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Ошибка при верификации компании');
+    }
+  };
+
+  const handleApproveVerification = async (requestId: string) => {
+    try {
+      await appApi.approveVerification(requestId);
+      setVerificationRequests((prev) => prev.filter((item) => item.id !== requestId));
+      const company = verificationRequests.find(r => r.id === requestId);
+      if (company) {
+        setCompanies((prev) => prev.map((item) => (item.id === company.companyId ? { ...item, verified: true } : item)));
+      }
+      toast.success('Верификация одобрена');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Ошибка при одобрении верификации');
+    }
+  };
+
+  const handleRejectVerification = async (requestId: string) => {
+    const reason = rejectReason[requestId];
+    if (!reason || reason.trim() === '') {
+      toast.error('Укажите причину отклонения');
+      return;
+    }
+    try {
+      await appApi.rejectVerification(requestId, reason);
+      setVerificationRequests((prev) => prev.filter((item) => item.id !== requestId));
+      setShowRejectForm((prev) => ({ ...prev, [requestId]: false }));
+      setRejectReason((prev) => ({ ...prev, [requestId]: '' }));
+      toast.success('Верификация отклонена');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Ошибка при отклонении верификации');
     }
   };
 
@@ -127,15 +164,65 @@ export const CuratorDashboard: React.FC = () => {
 
           <TabsContent value="verification">
             <Card>
-              <CardHeader><CardTitle>Компании в обработке</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle>Заявки на верификацию</CardTitle>
+                <CardDescription>Рассмотрение заявок работодателей на верификацию компании</CardDescription>
+              </CardHeader>
               <CardContent className="space-y-3">
-                {isLoading ? <p className="text-gray-500">Загрузка...</p> : pendingCompanies.map((company) => (
-                  <div key={company.id} className="border rounded-lg p-4">
-                    <h4 className="font-semibold">{company.name}</h4>
-                    <p className="text-sm text-gray-500">{company.email}</p>
-                    <Button className="mt-3" onClick={() => void handleVerifyCompany(company.id)}><CheckCircle className="w-4 h-4 mr-2" />Верифицировать</Button>
-                  </div>
-                ))}
+                {isLoading ? <p className="text-gray-500">Загрузка...</p> : verificationRequests.length === 0 ? (
+                  <p className="text-gray-500">Нет заявок на верификацию</p>
+                ) : verificationRequests.map((request) => {
+                  const company = companies.find(c => c.id === request.companyId);
+                  return (
+                    <div key={request.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <Link to={`/company/${company?.id}`} className="font-semibold hover:text-blue-600">
+                            {company?.name || 'Компания'}
+                          </Link>
+                          <p className="text-sm text-gray-500">{company?.email}</p>
+                          {company?.inn && <p className="text-sm text-gray-500">ИНН: {company.inn}</p>}
+                          {company?.ogrn && <p className="text-sm text-gray-500">ОГРН: {company.ogrn}</p>}
+                          {company?.address && <p className="text-sm text-gray-600 mt-1">{company.address}</p>}
+                          {company?.socialLinks && <p className="text-sm text-gray-600 mt-2">{company.socialLinks}</p>}
+                        </div>
+                        <Badge variant="secondary">
+                          <Clock className="w-3 h-3 mr-1" />
+                          Ожидает
+                        </Badge>
+                      </div>
+                      
+                      {showRejectForm[request.id] ? (
+                        <div className="mt-4 space-y-2">
+                          <Textarea 
+                            placeholder="Причина отклонения..."
+                            value={rejectReason[request.id] || ''}
+                            onChange={(e) => setRejectReason(prev => ({ ...prev, [request.id]: e.target.value }))}
+                          />
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="destructive" onClick={() => handleRejectVerification(request.id)}>
+                              Отклонить
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => setShowRejectForm(prev => ({ ...prev, [request.id]: false }))}>
+                              Отмена
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2 mt-3">
+                          <Button size="sm" onClick={() => handleApproveVerification(request.id)}>
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Одобрить
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => setShowRejectForm(prev => ({ ...prev, [request.id]: true }))}>
+                            <XCircle className="w-4 h-4 mr-1" />
+                            Отклонить
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </CardContent>
             </Card>
           </TabsContent>
@@ -150,13 +237,13 @@ export const CuratorDashboard: React.FC = () => {
                 </div>
                 <div className="space-y-3">
                   {companies.filter((company) => company.name.toLowerCase().includes(searchQuery.toLowerCase())).map((company) => (
-                    <div key={company.id} className="border rounded-lg p-4 flex justify-between">
+                    <Link key={company.id} to={`/company/${company.id}`} className="border rounded-lg p-4 flex justify-between hover:bg-gray-50">
                       <div>
-                        <h4 className="font-semibold">{company.name}</h4>
+                        <h4 className="font-semibold hover:text-blue-600">{company.name}</h4>
                         <p className="text-sm text-gray-500">{company.email}</p>
                       </div>
                       <Badge>{company.verified ? 'Компания верифицирована' : 'В обработке'}</Badge>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </CardContent>

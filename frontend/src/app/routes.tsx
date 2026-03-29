@@ -7,6 +7,7 @@ import { EmployerDashboard } from './pages/EmployerDashboard';
 import { CuratorDashboard } from './pages/CuratorDashboard';
 import { OpportunityPage } from './pages/OpportunityPage';
 import { UserProfilePage } from './pages/UserProfilePage';
+import { CompanyProfilePage } from './pages/CompanyProfilePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export const router = createBrowserRouter([
@@ -17,6 +18,10 @@ export const router = createBrowserRouter([
   {
     path: '/opportunity/:id',
     Component: OpportunityPage,
+  },
+  {
+    path: '/company/:id',
+    Component: CompanyProfilePage,
   },
   {
     path: '/user/:id',
