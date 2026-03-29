@@ -13,6 +13,12 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   backend:
     build:
@@ -22,7 +28,8 @@ services:
     ports:
       - "9500:9500"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: ${DB_URL}
@@ -31,6 +38,7 @@ services:
       DB_URL: ${DB_URL}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
+    restart: on-failure
 
   frontend:
     build:
@@ -43,8 +51,7 @@ services:
       - backend
 
   haproxy:
-    build:
-      context: ./haproxy
+    image: haproxy:2.9
     container_name: haproxy
     depends_on:
       - frontend
@@ -53,5 +60,7 @@ services:
       - "80:80"
       - "443:443"
       - "8404:8404"
+    volumes:
+      - ./haproxy:/usr/local/etc/haproxy
 volumes:
   postgres_data:
