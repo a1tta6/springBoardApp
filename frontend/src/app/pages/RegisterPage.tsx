@@ -114,7 +114,7 @@ export const RegisterPage: React.FC = () => {
               )}
             </CardContent>
 
-            <CardFooter className="flex flex-col gap-3">
+            <CardFooter className="flex flex-col gap-3 pt-6">
               <Button type="submit" className="w-full" disabled={isLoading}>
                 <UserPlus className="w-4 h-4 mr-2" />
                 {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
