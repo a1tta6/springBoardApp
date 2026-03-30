@@ -1,0 +1,14 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+@import 'leaflet/dist/leaflet.css';
+
+.leaflet-attribution-flag {
+    display: none!important;
+}
+.leaflet-control-attribution.leaflet-control a:nth-child(1) {
+    display: none!important;
+}
+.leaflet-control-attribution.leaflet-control span {
+    display: none!important;
+}

@@ -1,0 +1,35 @@
+name: Deploy to Debian 13 server
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Deploy via SSH
+        run: |
+          ssh -o StrictHostKeyChecking=no deployuser@194.67.119.172 << EOF
+          cd /home/deployuser/springBoardApp
+          git pull
+          echo "${{ secrets.SSL_PRIVATE_KEY }}" > haproxy/privkey.pem
+          cat haproxy/fullchain.pem haproxy/privkey.pem > haproxy/site.pem
+          export VITE_API_URL=${{ secrets.VITE_API_URL }}
+          export DB_NAME=${{ secrets.DB_NAME }}
+          export DB_URL=${{ secrets.DB_URL }}
+          export DB_USER=${{ secrets.DB_USER }}
+          export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          docker compose down
+          docker compose up -d --build
+          EOF

@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: springBoardApp
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/springboard}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+  liquibase:
+    change-log: classpath:db/changelog/changelog.xml
+  jooq:
+    sql-dialect: postgres
+
+server:
+  port: 9500
+  servlet:
+    context-path: /api
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:0123456789012345678901234567890123456789012345678901234567890123}
+    access-minutes: 30
+    refresh-days: 14
