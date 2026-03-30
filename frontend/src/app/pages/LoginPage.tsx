@@ -66,18 +66,9 @@ export const LoginPage: React.FC = () => {
                 <Label htmlFor="password">Пароль</Label>
                 <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </div>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm text-blue-800 font-medium mb-2">Демо-аккаунты:</p>
-                <div className="space-y-1 text-xs text-blue-700">
-                  <p><strong>Соискатель:</strong> student@example.com / student123</p>
-                  <p><strong>Работодатель:</strong> employer@technolab.ru / employer123</p>
-                  <p><strong>Куратор:</strong> admin@tramplin.ru / admin123</p>
-                </div>
-              </div>
             </CardContent>
 
-            <CardFooter className="flex flex-col gap-3">
+            <CardFooter className="flex flex-col gap-3 pt-6">
               <Button type="submit" className="w-full" disabled={isLoading}>
                 <LogIn className="w-4 h-4 mr-2" />
                 {isLoading ? 'Вход...' : 'Войти'}
