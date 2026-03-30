@@ -19,37 +19,39 @@ public final class ViewJson {
     }
 
     public record User(
-        String id,
-        String email,
-        String username,
-        String displayName,
-        String role,
-        String fullName,
-        String university,
-        String course,
-        String graduationYear,
-        List<String> skills,
-        List<String> portfolioLinks,
-        String resume,
-        List<String> contacts,
-        Privacy privacySettings,
-        String companyId,
-        String photo
+            String id,
+            String email,
+            String username,
+            String displayName,
+            String role,
+            String fullName,
+            String university,
+            String course,
+            String graduationYear,
+            List<String> skills,
+            List<String> portfolioLinks,
+            String resume,
+            List<String> contacts,
+            Privacy privacySettings,
+            String companyId,
+            String photo
     ) {
     }
 
     public record Company(
-        String id,
-        String name,
-        String inn,
-        String ogrn,
-        String address,
-        String website,
-        String logo,
-        String socialLinks,
-        String bio,
-        boolean verified,
-        String email
+            String id,
+            String name,
+            String inn,
+            String ogrn,
+            String address,
+            Double latitude,
+            Double longitude,
+            String website,
+            String logo,
+            String socialLinks,
+            String bio,
+            boolean verified,
+            String email
     ) {
     }
 
@@ -66,56 +68,56 @@ public final class ViewJson {
     }
 
     public record Opportunity(
-        String id,
-        String title,
-        String description,
-        String type,
-        String companyId,
-        String workFormat,
-        Location location,
-        Salary salary,
-        Instant publishedDate,
-        LocalDate expiryDate,
-        LocalDate eventDate,
-        Contact contactInfo,
-        List<String> tags,
-        String status,
-        String requirements,
-        List<String> mediaContent
+            String id,
+            String title,
+            String description,
+            String type,
+            String companyId,
+            String workFormat,
+            Location location,
+            Salary salary,
+            Instant publishedDate,
+            LocalDate expiryDate,
+            LocalDate eventDate,
+            Contact contactInfo,
+            List<String> tags,
+            String status,
+            String requirements,
+            List<String> mediaContent
     ) {
     }
 
     public record Application(
-        String id,
-        String opportunityId,
-        String applicantId,
-        String status,
-        Instant appliedDate,
-        String message
+            String id,
+            String opportunityId,
+            String applicantId,
+            String status,
+            Instant appliedDate,
+            String message
     ) {
     }
 
     public record Dashboard(
-        List<User> users,
-        List<Company> companies,
-        List<Opportunity> opportunities,
-        List<Application> applications,
-        List<Opportunity> favorites,
-        List<Tag> tags
+            List<User> users,
+            List<Company> companies,
+            List<Opportunity> opportunities,
+            List<Application> applications,
+            List<Opportunity> favorites,
+            List<Tag> tags
     ) {
     }
 
     public record ProfileUpdate(
-        String displayName,
-        String fullName,
-        String university,
-        String course,
-        String graduationYear,
-        List<String> skills,
-        List<String> portfolioLinks,
-        String resume,
-        List<String> contacts,
-        String photo
+            String displayName,
+            String fullName,
+            String university,
+            String course,
+            String graduationYear,
+            List<String> skills,
+            List<String> portfolioLinks,
+            String resume,
+            List<String> contacts,
+            String photo
     ) {
     }
 
@@ -123,24 +125,23 @@ public final class ViewJson {
     }
 
     public record OpportunityCreate(
-        String title,
-        String description,
-        String type,
-        String workFormat,
-        String city,
-        String address,
-        Double latitude,
-        Double longitude,
-        Integer salaryMin,
-        Integer salaryMax,
-        String currency,
-        LocalDate expiryDate,
-        LocalDate eventDate,
-        String contactEmail,
-        String contactPhone,
-        String contactWebsite,
-        List<String> tags,
-        String requirements
+            String title,
+            String description,
+            String type,
+            String workFormat,
+            String address,
+            Double latitude,
+            Double longitude,
+            Integer salaryMin,
+            Integer salaryMax,
+            String currency,
+            LocalDate expiryDate,
+            LocalDate eventDate,
+            String contactEmail,
+            String contactPhone,
+            String contactWebsite,
+            List<String> tags,
+            String requirements
     ) {
     }
 
@@ -151,14 +152,14 @@ public final class ViewJson {
     }
 
     public record Friend(
-        String id,
-        String userId,
-        String email,
-        String displayName,
-        String fullName,
-        String university,
-        String status,
-        Instant createdAt
+            String id,
+            String userId,
+            String email,
+            String displayName,
+            String fullName,
+            String university,
+            String status,
+            Instant createdAt
     ) {
     }
 
@@ -166,34 +167,36 @@ public final class ViewJson {
     }
 
     public record UserProfile(
-        User user,
-        boolean isFriend,
-        boolean showResume,
-        boolean showApplications,
-        List<Opportunity> favorites,
-        List<Application> applications
+            User user,
+            boolean isFriend,
+            boolean showResume,
+            boolean showApplications,
+            List<Opportunity> favorites,
+            List<Application> applications
     ) {
     }
 
     public record VerificationRequest(
-        String id,
-        String companyId,
-        String status,
-        String rejectionReason,
-        Instant createdAt,
-        Instant processedAt
+            String id,
+            String companyId,
+            String status,
+            String rejectionReason,
+            Instant createdAt,
+            Instant processedAt
     ) {
     }
 
     public record CompanyUpdate(
-        String name,
-        String inn,
-        String ogrn,
-        String address,
-        String website,
-        String logo,
-        String socialLinks,
-        String bio
+            String name,
+            String inn,
+            String ogrn,
+            String address,
+            Double latitude,
+            Double longitude,
+            String website,
+            String logo,
+            String socialLinks,
+            String bio
     ) {
     }
 
@@ -201,40 +204,40 @@ public final class ViewJson {
     }
 
     public record CompanyProfile(
-        Company company,
-        List<Opportunity> opportunities
+            Company company,
+            List<Opportunity> opportunities
     ) {
     }
 
     public record Recommendation(
-        String id,
-        User referrer,
-        User referee,
-        User subjectUser,
-        Opportunity opportunity,
-        String comment,
-        Instant createdAt
+            String id,
+            User referrer,
+            User referee,
+            User subjectUser,
+            Opportunity opportunity,
+            String comment,
+            Instant createdAt
     ) {
     }
 
     public record RecommendFriendForm(
-        String friendId,
-        String opportunityId,
-        String comment
+            String friendId,
+            String opportunityId,
+            String comment
     ) {
     }
 
     public record RecommendEmployerForm(
-        String friendId,
-        String companyId,
-        String comment
+            String friendId,
+            String companyId,
+            String comment
     ) {
     }
 
     public record RecommendOpportunityForm(
-        String friendId,
-        String opportunityId,
-        String comment
+            String friendId,
+            String opportunityId,
+            String comment
     ) {
     }
 }

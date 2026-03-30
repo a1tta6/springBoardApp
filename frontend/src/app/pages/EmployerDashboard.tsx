@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { toast } from 'sonner';
 import { LogOut, Home, Building2, Briefcase, Users, CheckCircle, Clock, XCircle, Search, Plus, Edit, Trash2, ExternalLink, Globe, Send, AlertCircle, Star } from 'lucide-react';
 import { appApi, VerificationRequest } from '../api/appApi';
+import { AddressInput } from '../components/AddressInput';
 
 type OpportunityStatus = 'active' | 'closed' | 'planned';
 type OpportunityType = 'vacancy' | 'internship' | 'mentorship' | 'event';
@@ -43,6 +44,8 @@ export const EmployerDashboard: React.FC = () => {
     inn: '',
     ogrn: '',
     address: '',
+    latitude: 55.751244,
+    longitude: 37.618423,
     website: '',
     logo: '',
     socialLinks: '',
@@ -55,7 +58,6 @@ export const EmployerDashboard: React.FC = () => {
     description: '',
     type: 'vacancy' as OpportunityType,
     workFormat: 'office' as WorkFormat,
-    city: '',
     address: '',
     latitude: 55.751244,
     longitude: 37.618423,
@@ -110,6 +112,8 @@ export const EmployerDashboard: React.FC = () => {
               inn: myCompany.inn || '',
               ogrn: myCompany.ogrn || '',
               address: myCompany.address || '',
+              latitude: myCompany.latitude || 55.751244,
+              longitude: myCompany.longitude || 37.618423,
               website: myCompany.website || '',
               logo: myCompany.logo || '',
               socialLinks: parsedSocialLinks,
@@ -159,15 +163,23 @@ export const EmployerDashboard: React.FC = () => {
   };
 
   const resetOppForm = () => {
+    setIsCreating(false);
+    setEditingId(null);
+  };
+
+  const initOppForm = () => {
+    const companyAddress = company?.address || '';
+    const companyLat = company?.latitude || 55.751244;
+    const companyLng = company?.longitude || 37.618423;
+    
     setOppForm({
       title: '',
       description: '',
       type: 'vacancy',
       workFormat: 'office',
-      city: '',
-      address: '',
-      latitude: 55.751244,
-      longitude: 37.618423,
+      address: companyAddress,
+      latitude: companyLat,
+      longitude: companyLng,
       salaryMin: 0,
       salaryMax: 0,
       currency: 'RUB',
@@ -178,7 +190,7 @@ export const EmployerDashboard: React.FC = () => {
       eventDate: '',
       expiryDate: '',
     });
-    setIsCreating(false);
+    setIsCreating(true);
     setEditingId(null);
   };
 
@@ -221,7 +233,6 @@ export const EmployerDashboard: React.FC = () => {
       description: opp.description,
       type: opp.type as OpportunityType,
       workFormat: opp.workFormat as WorkFormat,
-      city: opp.location.city,
       address: opp.location.address || '',
       latitude: opp.location.coordinates[0],
       longitude: opp.location.coordinates[1],
@@ -407,15 +418,14 @@ export const EmployerDashboard: React.FC = () => {
                         {ogrnError && <span className="text-xs text-red-600">{ogrnError}</span>}
                       </div>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label>Адрес организации</Label>
-                      <Input 
-                        value={companyForm.address} 
-                        onChange={(e) => setCompanyForm((prev) => ({ ...prev, address: e.target.value }))}
-                        disabled={!canEditCompany}
-                      />
-                    </div>
+                    <Label>Адрес организации</Label>
+                    <AddressInput 
+                      address={companyForm.address}
+                      latitude={companyForm.latitude}
+                      longitude={companyForm.longitude}
+                      onAddressChange={(address) => setCompanyForm((prev) => ({ ...prev, address }))}
+                      onCoordinatesChange={(lat, lng) => setCompanyForm((prev) => ({ ...prev, latitude: lat, longitude: lng }))}
+                    />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -509,7 +519,7 @@ export const EmployerDashboard: React.FC = () => {
                     <p className="text-sm text-yellow-600">Для создания возможностей необходимо пройти верификацию</p>
                   )}
                   {isVerified && !isCreating && (
-                    <Button size="sm" onClick={() => setIsCreating(true)}>
+                    <Button size="sm" onClick={initOppForm}>
                       <Plus className="w-4 h-4 mr-2" />
                       Создать
                     </Button>
@@ -526,30 +536,14 @@ export const EmployerDashboard: React.FC = () => {
                   </div>
                 )}
 
-                {isVerified && !isCreating && (
-                  <div className="flex gap-2 mb-4">
-                    <Select value={oppStatusFilter} onValueChange={setOppStatusFilter}>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Статус" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Все</SelectItem>
-                        <SelectItem value="active">Активные</SelectItem>
-                        <SelectItem value="closed">Закрытые</SelectItem>
-                        <SelectItem value="planned">Запланированные</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                {isVerified && isCreating && (
+                {isVerified && isCreating ? (
                   <div className="border rounded-lg p-4 space-y-4 bg-gray-50">
                     <h4 className="font-semibold">{editingId ? 'Редактирование' : 'Создание новой возможности'}</h4>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Название *</Label>
-                        <Input value={oppForm.title} onChange={(e) => setOppForm((prev) => ({ ...prev, title: e.target.value }))} placeholder="Junior Python Developer" />
+                        <Input value={oppForm.title} onChange={(e) => setOppForm((prev) => ({ ...prev, title: e.target.value }))} />
                       </div>
                       <div className="space-y-2">
                         <Label>Тип</Label>
@@ -565,28 +559,26 @@ export const EmployerDashboard: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Город *</Label>
-                        <Input value={oppForm.city} onChange={(e) => setOppForm((prev) => ({ ...prev, city: e.target.value }))} placeholder="Москва" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Формат работы</Label>
-                        <Select value={oppForm.workFormat} onValueChange={(v) => setOppForm((prev) => ({ ...prev, workFormat: v as WorkFormat }))}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="office">Офис</SelectItem>
-                            <SelectItem value="hybrid">Гибрид</SelectItem>
-                            <SelectItem value="remote">Удаленно</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <div className="space-y-2">
+                      <Label>Формат работы</Label>
+                      <Select value={oppForm.workFormat} onValueChange={(v) => setOppForm((prev) => ({ ...prev, workFormat: v as WorkFormat }))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="office">Офис</SelectItem>
+                          <SelectItem value="hybrid">Гибрид</SelectItem>
+                          <SelectItem value="remote">Удаленно</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label>Адрес</Label>
-                      <Input value={oppForm.address} onChange={(e) => setOppForm((prev) => ({ ...prev, address: e.target.value }))} placeholder="Улица, дом" />
-                    </div>
+                    <Label>Адрес проведения</Label>
+                    <AddressInput 
+                      address={oppForm.address}
+                      latitude={oppForm.latitude}
+                      longitude={oppForm.longitude}
+                      onAddressChange={(address) => setOppForm((prev) => ({ ...prev, address }))}
+                      onCoordinatesChange={(lat, lng) => setOppForm((prev) => ({ ...prev, latitude: lat, longitude: lng }))}
+                    />
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
@@ -632,48 +624,62 @@ export const EmployerDashboard: React.FC = () => {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button onClick={() => editingId ? handleUpdateOpp() : handleCreateOpp()} disabled={!oppForm.title || !oppForm.description || !oppForm.city}>
+                      <Button onClick={() => editingId ? handleUpdateOpp() : handleCreateOpp()} disabled={!oppForm.title || !oppForm.description || !oppForm.address}>
                         {editingId ? 'Сохранить' : 'Создать'}
                       </Button>
                       <Button variant="outline" onClick={resetOppForm}>Отмена</Button>
                     </div>
                   </div>
-                )}
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex gap-2 mb-4">
+                      <Select value={oppStatusFilter} onValueChange={setOppStatusFilter}>
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Статус" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Все</SelectItem>
+                          <SelectItem value="active">Активные</SelectItem>
+                          <SelectItem value="closed">Закрытые</SelectItem>
+                          <SelectItem value="planned">Запланированные</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div className="space-y-3">
-                  {isLoading ? (
-                    <p className="text-gray-500">Загрузка...</p>
-                  ) : filteredOpportunities.length === 0 ? (
-                    <p className="text-gray-500">Нет возможностей</p>
-                  ) : (
-                    filteredOpportunities.map((opportunity) => (
-                      <div key={opportunity.id} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-semibold">{opportunity.title}</h4>
-                              <Badge variant={opportunity.status === 'active' ? 'default' : opportunity.status === 'closed' ? 'destructive' : 'secondary'}>
-                                {opportunity.status === 'active' ? 'Активно' : opportunity.status === 'closed' ? 'Закрыто' : 'Запланировано'}
-                              </Badge>
+                    {isLoading ? (
+                      <p className="text-gray-500">Загрузка...</p>
+                    ) : filteredOpportunities.length === 0 ? (
+                      <p className="text-gray-500">Нет возможностей</p>
+                    ) : (
+                      filteredOpportunities.map((opportunity) => (
+                        <div key={opportunity.id} className="border rounded-lg p-4">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-semibold">{opportunity.title}</h4>
+                                <Badge variant={opportunity.status === 'active' ? 'default' : opportunity.status === 'closed' ? 'destructive' : 'secondary'}>
+                                  {opportunity.status === 'active' ? 'Активно' : opportunity.status === 'closed' ? 'Закрыто' : 'Запланировано'}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-500">
+                                {typeLabels[opportunity.type as OpportunityType]} • {formatLabels[opportunity.workFormat as WorkFormat]} • {opportunity.location.address || 'Удаленно'}
+                              </p>
+                              <p className="text-sm text-gray-600 mt-2 line-clamp-2">{opportunity.description}</p>
                             </div>
-                            <p className="text-sm text-gray-500">
-                              {typeLabels[opportunity.type as OpportunityType]} • {formatLabels[opportunity.workFormat as WorkFormat]} • {opportunity.location.city}
-                            </p>
-                            <p className="text-sm text-gray-600 mt-2 line-clamp-2">{opportunity.description}</p>
-                          </div>
-                          <div className="flex gap-1 ml-2">
-                            <Button variant="ghost" size="icon" onClick={() => handleEditOpp(opportunity)}>
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteOpp(opportunity.id)}>
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            <div className="flex gap-1 ml-2">
+                              <Button variant="ghost" size="icon" onClick={() => handleEditOpp(opportunity)}>
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleDeleteOpp(opportunity.id)}>
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))
-                  )}
-                </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}

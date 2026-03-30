@@ -43,8 +43,8 @@ public class OpportunityRepo {
                 .set(OPPORTUNITY_TYPE, item.type().name())
                 .set(OPPORTUNITY_COMPANY_ID, item.companyId())
                 .set(OPPORTUNITY_WORK_FORMAT, item.workFormat().name())
-                .set(OPPORTUNITY_CITY, item.city())
                 .set(OPPORTUNITY_ADDRESS, item.address())
+                .set(OPPORTUNITY_CITY, item.city())
                 .set(OPPORTUNITY_LATITUDE, item.latitude())
                 .set(OPPORTUNITY_LONGITUDE, item.longitude())
                 .set(OPPORTUNITY_SALARY_MIN, item.salaryMin())
@@ -68,8 +68,8 @@ public class OpportunityRepo {
                 .set(OPPORTUNITY_TYPE, item.type().name())
                 .set(OPPORTUNITY_COMPANY_ID, item.companyId())
                 .set(OPPORTUNITY_WORK_FORMAT, item.workFormat().name())
-                .set(OPPORTUNITY_CITY, item.city())
                 .set(OPPORTUNITY_ADDRESS, item.address())
+                .set(OPPORTUNITY_CITY, item.city())
                 .set(OPPORTUNITY_LATITUDE, item.latitude())
                 .set(OPPORTUNITY_LONGITUDE, item.longitude())
                 .set(OPPORTUNITY_SALARY_MIN, item.salaryMin())
@@ -95,8 +95,8 @@ public class OpportunityRepo {
             item.type(),
             item.companyId(),
             item.workFormat(),
-            item.city(),
             item.address(),
+            item.city(),
             item.latitude(),
             item.longitude(),
             item.salaryMin(),
@@ -151,8 +151,8 @@ public class OpportunityRepo {
             OpportunityType.valueOf(record.get(OPPORTUNITY_TYPE)),
             record.get(OPPORTUNITY_COMPANY_ID),
             WorkFormat.valueOf(record.get(OPPORTUNITY_WORK_FORMAT)),
-            record.get(OPPORTUNITY_CITY),
             record.get(OPPORTUNITY_ADDRESS),
+            record.get(OPPORTUNITY_CITY),
             record.get(OPPORTUNITY_LATITUDE),
             record.get(OPPORTUNITY_LONGITUDE),
             record.get(OPPORTUNITY_SALARY_MIN),

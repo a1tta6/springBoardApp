@@ -182,14 +182,15 @@ public final class AppService {
         if (!company.verified()) {
             throw new IllegalStateException("Company verification is required");
         }
+        final String city = parseCityFromAddress(form.address());
         final OpportunityEntity saved = this.opportunities.save(new OpportunityEntity(
             form.title(),
             form.description(),
             OpportunityType.valueOf(form.type().toUpperCase()),
             company.id(),
             WorkFormat.valueOf(form.workFormat().toUpperCase()),
-            form.city(),
             form.address(),
+            city,
             form.latitude(),
             form.longitude(),
             form.salaryMin(),
@@ -214,6 +215,7 @@ public final class AppService {
         final OpportunityEntity existing = this.opportunities.findById(oppId)
             .orElseThrow(() -> new MissingEntityException("Opportunity is missing"));
         
+        final String city = parseCityFromAddress(form.address());
         final OpportunityEntity updated = new OpportunityEntity(
             existing.id(),
             form.title(),
@@ -221,8 +223,8 @@ public final class AppService {
             OpportunityType.valueOf(form.type().toUpperCase()),
             existing.companyId(),
             WorkFormat.valueOf(form.workFormat().toUpperCase()),
-            form.city(),
             form.address(),
+            city,
             form.latitude(),
             form.longitude(),
             form.salaryMin(),
@@ -333,6 +335,8 @@ public final class AppService {
             form.inn() != null ? form.inn() : company.inn(),
             form.ogrn() != null ? form.ogrn() : company.ogrn(),
             form.address() != null ? form.address() : company.address(),
+            form.latitude() != null ? form.latitude() : company.latitude(),
+            form.longitude() != null ? form.longitude() : company.longitude(),
             form.website(),
             form.logo(),
             form.socialLinks(),
@@ -667,5 +671,16 @@ public final class AppService {
 
     private List<UUID> ids(final List<String> items) {
         return this.list(items).stream().map(UUID::fromString).toList();
+    }
+
+    private String parseCityFromAddress(final String address) {
+        if (address == null || address.isBlank()) {
+            return "";
+        }
+        final String[] parts = address.split(",");
+        if (parts.length >= 2) {
+            return parts[1].trim();
+        }
+        return parts[0].trim();
     }
 }

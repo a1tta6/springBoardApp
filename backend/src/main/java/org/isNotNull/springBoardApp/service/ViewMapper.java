@@ -45,6 +45,8 @@ public final class ViewMapper {
             company.inn(),
             company.ogrn(),
             company.address(),
+            company.latitude(),
+            company.longitude(),
             company.website(),
             company.logo(),
             company.socialLinks(),

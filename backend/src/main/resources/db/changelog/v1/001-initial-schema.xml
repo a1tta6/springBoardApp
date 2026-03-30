@@ -59,6 +59,12 @@
             <column name="inn" type="VARCHAR(20)"/>
             <column name="ogrn" type="VARCHAR(20)"/>
             <column name="address" type="VARCHAR(500)"/>
+            <column name="latitude" type="DOUBLE">
+                <constraints nullable="true"/>
+            </column>
+            <column name="longitude" type="DOUBLE">
+                <constraints nullable="true"/>
+            </column>
             <column name="logo" type="TEXT"/>
             <column name="social_links" type="TEXT"/>
             <column name="bio" type="TEXT"/>
@@ -106,10 +112,10 @@
             <column name="work_format" type="VARCHAR(64)">
                 <constraints nullable="false"/>
             </column>
-            <column name="city" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
             <column name="address" type="VARCHAR(255)"/>
+            <column name="city" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
             <column name="latitude" type="DOUBLE">
                 <constraints nullable="false"/>
             </column>

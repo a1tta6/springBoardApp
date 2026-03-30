@@ -127,7 +127,11 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-sm">
             <MapPin className="w-4 h-4 text-gray-500" />
-            <span>{opportunity.location.address || opportunity.location.city}</span>
+            <span>
+              {opportunity.workFormat === 'remote' 
+                ? opportunity.location.city 
+                : opportunity.location.address || opportunity.location.city}
+            </span>
           </div>
 
           {opportunity.salary && (

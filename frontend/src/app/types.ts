@@ -22,6 +22,8 @@ export interface Company {
   inn?: string;
   ogrn?: string;
   address?: string;
+  latitude?: number;
+  longitude?: number;
   website?: string;
   logo?: string;
   socialLinks?: string;

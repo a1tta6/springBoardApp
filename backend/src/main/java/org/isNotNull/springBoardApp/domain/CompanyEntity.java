@@ -15,6 +15,8 @@ public final class CompanyEntity {
     private final String inn;
     private final String ogrn;
     private final String address;
+    private final double latitude;
+    private final double longitude;
     private final String website;
     private final String logo;
     private final String socialLinks;
@@ -28,6 +30,8 @@ public final class CompanyEntity {
         final String inn,
         final String ogrn,
         final String address,
+        final double latitude,
+        final double longitude,
         final String website,
         final String logo,
         final String socialLinks,
@@ -40,6 +44,8 @@ public final class CompanyEntity {
         this.inn = inn;
         this.ogrn = ogrn;
         this.address = address;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.website = website;
         this.logo = logo;
         this.socialLinks = socialLinks;
@@ -53,6 +59,8 @@ public final class CompanyEntity {
         final String inn,
         final String ogrn,
         final String address,
+        final double latitude,
+        final double longitude,
         final String website,
         final String logo,
         final String socialLinks,
@@ -60,7 +68,7 @@ public final class CompanyEntity {
         final boolean verified,
         final String email
     ) {
-        this(null, name, inn, ogrn, address, website, logo, socialLinks, bio, verified, email);
+        this(null, name, inn, ogrn, address, latitude, longitude, website, logo, socialLinks, bio, verified, email);
     }
 
     public UUID id() { return this.id; }
@@ -68,6 +76,8 @@ public final class CompanyEntity {
     public String inn() { return this.inn; }
     public String ogrn() { return this.ogrn; }
     public String address() { return this.address; }
+    public double latitude() { return this.latitude; }
+    public double longitude() { return this.longitude; }
     public String website() { return this.website; }
     public String logo() { return this.logo; }
     public String socialLinks() { return this.socialLinks; }
@@ -82,6 +92,8 @@ public final class CompanyEntity {
             this.inn,
             this.ogrn,
             this.address,
+            this.latitude,
+            this.longitude,
             this.website,
             this.logo,
             this.socialLinks,

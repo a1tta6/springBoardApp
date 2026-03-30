@@ -342,7 +342,7 @@ export const OpportunityPage: React.FC = () => {
                       <div className="text-sm text-gray-500">Местоположение</div>
                       <div className="font-medium">
                         {opportunity.location.address 
-                          ? `${opportunity.location.address}, ${opportunity.location.city}`
+                          ? `${opportunity.location.address}`
                           : opportunity.location.city}
                       </div>
                     </div>

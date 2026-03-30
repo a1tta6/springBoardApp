@@ -35,6 +35,8 @@ public class CompanyRepo {
                 .set(COMPANY_INN, company.inn())
                 .set(COMPANY_OGRN, company.ogrn())
                 .set(COMPANY_ADDRESS, company.address())
+                .set(COMPANY_LATITUDE, company.latitude())
+                .set(COMPANY_LONGITUDE, company.longitude())
                 .set(COMPANY_WEBSITE, company.website())
                 .set(COMPANY_LOGO, company.logo())
                 .set(COMPANY_SOCIAL_LINKS, company.socialLinks())
@@ -48,6 +50,8 @@ public class CompanyRepo {
                 .set(COMPANY_INN, company.inn())
                 .set(COMPANY_OGRN, company.ogrn())
                 .set(COMPANY_ADDRESS, company.address())
+                .set(COMPANY_LATITUDE, company.latitude())
+                .set(COMPANY_LONGITUDE, company.longitude())
                 .set(COMPANY_WEBSITE, company.website())
                 .set(COMPANY_LOGO, company.logo())
                 .set(COMPANY_SOCIAL_LINKS, company.socialLinks())
@@ -57,7 +61,7 @@ public class CompanyRepo {
                 .where(COMPANY_ID.eq(id))
                 .execute();
         }
-        return new CompanyEntity(id, company.name(), company.inn(), company.ogrn(), company.address(), company.website(), company.logo(), company.socialLinks(), company.bio(), company.verified(), company.email());
+        return new CompanyEntity(id, company.name(), company.inn(), company.ogrn(), company.address(), company.latitude(), company.longitude(), company.website(), company.logo(), company.socialLinks(), company.bio(), company.verified(), company.email());
     }
 
     public Optional<CompanyEntity> findById(final UUID id) {
@@ -79,6 +83,8 @@ public class CompanyRepo {
             record.get(COMPANY_INN),
             record.get(COMPANY_OGRN),
             record.get(COMPANY_ADDRESS),
+            record.get(COMPANY_LATITUDE) != null ? record.get(COMPANY_LATITUDE) : 55.751244,
+            record.get(COMPANY_LONGITUDE) != null ? record.get(COMPANY_LONGITUDE) : 37.618423,
             record.get(COMPANY_WEBSITE),
             record.get(COMPANY_LOGO),
             record.get(COMPANY_SOCIAL_LINKS),

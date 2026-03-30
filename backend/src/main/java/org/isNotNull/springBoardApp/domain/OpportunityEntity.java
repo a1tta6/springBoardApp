@@ -19,8 +19,8 @@ public final class OpportunityEntity {
     private final OpportunityType type;
     private final UUID companyId;
     private final WorkFormat workFormat;
-    private final String city;
     private final String address;
+    private final String city;
     private final double latitude;
     private final double longitude;
     private final Integer salaryMin;
@@ -44,8 +44,8 @@ public final class OpportunityEntity {
         final OpportunityType type,
         final UUID companyId,
         final WorkFormat workFormat,
-        final String city,
         final String address,
+        final String city,
         final double latitude,
         final double longitude,
         final Integer salaryMin,
@@ -68,8 +68,8 @@ public final class OpportunityEntity {
         this.type = type;
         this.companyId = companyId;
         this.workFormat = workFormat;
-        this.city = city;
         this.address = address;
+        this.city = city;
         this.latitude = latitude;
         this.longitude = longitude;
         this.salaryMin = salaryMin;
@@ -93,8 +93,8 @@ public final class OpportunityEntity {
         final OpportunityType type,
         final UUID companyId,
         final WorkFormat workFormat,
-        final String city,
         final String address,
+        final String city,
         final double latitude,
         final double longitude,
         final Integer salaryMin,
@@ -118,8 +118,8 @@ public final class OpportunityEntity {
             type,
             companyId,
             workFormat,
-            city,
             address,
+            city,
             latitude,
             longitude,
             salaryMin,
@@ -144,8 +144,8 @@ public final class OpportunityEntity {
     public OpportunityType type() { return this.type; }
     public UUID companyId() { return this.companyId; }
     public WorkFormat workFormat() { return this.workFormat; }
-    public String city() { return this.city; }
     public String address() { return this.address; }
+    public String city() { return this.city; }
     public double latitude() { return this.latitude; }
     public double longitude() { return this.longitude; }
     public Integer salaryMin() { return this.salaryMin; }
@@ -170,8 +170,8 @@ public final class OpportunityEntity {
             this.type,
             this.companyId,
             this.workFormat,
-            this.city,
             this.address,
+            this.city,
             this.latitude,
             this.longitude,
             this.salaryMin,

@@ -50,6 +50,8 @@ public final class DbTables {
     public static final Field<String> COMPANY_INN = field(unquotedName("companies", "inn"), String.class);
     public static final Field<String> COMPANY_OGRN = field(unquotedName("companies", "ogrn"), String.class);
     public static final Field<String> COMPANY_ADDRESS = field(unquotedName("companies", "address"), String.class);
+    public static final Field<Double> COMPANY_LATITUDE = field(unquotedName("companies", "latitude"), Double.class);
+    public static final Field<Double> COMPANY_LONGITUDE = field(unquotedName("companies", "longitude"), Double.class);
     public static final Field<String> COMPANY_WEBSITE = field(unquotedName("companies", "website"), String.class);
     public static final Field<String> COMPANY_LOGO = field(unquotedName("companies", "logo"), String.class);
     public static final Field<String> COMPANY_SOCIAL_LINKS = field(unquotedName("companies", "social_links"), String.class);
@@ -69,8 +71,8 @@ public final class DbTables {
     public static final Field<String> OPPORTUNITY_TYPE = field(unquotedName("opportunities", "type"), String.class);
     public static final Field<UUID> OPPORTUNITY_COMPANY_ID = field(unquotedName("opportunities", "company_id"), UUID.class);
     public static final Field<String> OPPORTUNITY_WORK_FORMAT = field(unquotedName("opportunities", "work_format"), String.class);
-    public static final Field<String> OPPORTUNITY_CITY = field(unquotedName("opportunities", "city"), String.class);
     public static final Field<String> OPPORTUNITY_ADDRESS = field(unquotedName("opportunities", "address"), String.class);
+    public static final Field<String> OPPORTUNITY_CITY = field(unquotedName("opportunities", "city"), String.class);
     public static final Field<Double> OPPORTUNITY_LATITUDE = field(unquotedName("opportunities", "latitude"), Double.class);
     public static final Field<Double> OPPORTUNITY_LONGITUDE = field(unquotedName("opportunities", "longitude"), Double.class);
     public static final Field<Integer> OPPORTUNITY_SALARY_MIN = field(unquotedName("opportunities", "salary_min"), Integer.class);

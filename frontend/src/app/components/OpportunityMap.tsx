@@ -77,7 +77,7 @@ const createCustomIcon = (type: string, isFavorite: boolean) => {
       <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 21.9 12.5 41 12.5 41S25 21.9 25 12.5C25 5.6 19.4 0 12.5 0Z"
             fill="${color}"
             stroke="${isFavorite ? '#fbbf24' : '#000'}"
-            stroke-width="${isFavorite ? '2' : '1'}"/>
+            stroke-width="${isFavorite ? '3' : '1'}"/>
       <circle cx="12.5" cy="12.5" r="6" fill="white"/>
     </svg>
   `;

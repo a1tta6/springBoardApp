@@ -79,6 +79,7 @@ public final class AuthService {
                 null,
                 null,
                 null,
+                55.751244, 37.618423,
                 null,
                 null,
                 null,
