@@ -760,9 +760,9 @@ export const EmployerDashboard: React.FC = () => {
                         
                         <div 
                           className="bg-white border rounded p-3 mt-2 cursor-pointer hover:bg-gray-50"
-                          onClick={() => navigate(`/user/${rec.referee?.id}`)}
+                          onClick={() => navigate(`/user/${rec.subjectUser?.id}`)}
                         >
-                          <h4 className="font-medium text-blue-600">{rec.referee?.displayName || rec.referee?.email}</h4>
+                          <h4 className="font-medium text-blue-600">{rec.subjectUser?.displayName || rec.subjectUser?.email}</h4>
                           <p className="text-sm text-gray-500 mt-1">Рекомендуемый кандидат</p>
                           {rec.opportunity && (
                             <p className="text-sm text-gray-500 mt-1">
