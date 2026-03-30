@@ -283,16 +283,35 @@ export const CuratorDashboard: React.FC = () => {
             <Card>
               <CardHeader><CardTitle>Возможности в обработке</CardTitle></CardHeader>
               <CardContent className="space-y-3">
-                {pendingOpportunities.map((opportunity) => (
-                  <div key={opportunity.id} className="border rounded-lg p-4">
-                    <h4 className="font-semibold">{opportunity.title}</h4>
-                    <p className="text-sm text-gray-600 mt-2">{opportunity.description}</p>
-                    <div className="flex gap-2 mt-3">
-                      <Button onClick={() => void handleModerateOpportunity(opportunity.id, 'active')}><CheckCircle className="w-4 h-4 mr-2" />Одобрить</Button>
-                      <Button variant="destructive" onClick={() => void handleModerateOpportunity(opportunity.id, 'closed')}><XCircle className="w-4 h-4 mr-2" />Отклонить</Button>
-                    </div>
-                  </div>
-                ))}
+                {pendingOpportunities.length === 0 ? (
+                  <p className="text-gray-500">Нет возможностей на модерации</p>
+                ) : (
+                  pendingOpportunities.map((opportunity) => {
+                    const company = companies.find(c => c.id === opportunity.companyId);
+                    return (
+                      <div key={opportunity.id} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <Link to={`/opportunity/${opportunity.id}`} className="font-semibold hover:text-blue-600">
+                              {opportunity.title}
+                            </Link>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {company?.name || 'Компания'}
+                            </p>
+                            <p className="text-sm text-gray-600 mt-2 line-clamp-2">{opportunity.description}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 mt-3">
+                          <Button onClick={() => void handleModerateOpportunity(opportunity.id, 'active')}><CheckCircle className="w-4 h-4 mr-2" />Одобрить</Button>
+                          <Button variant="destructive" onClick={() => void handleModerateOpportunity(opportunity.id, 'closed')}><XCircle className="w-4 h-4 mr-2" />Отклонить</Button>
+                          <Link to={`/opportunity/${opportunity.id}`}>
+                            <Button variant="outline">Подробнее</Button>
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </CardContent>
             </Card>
           </TabsContent>

@@ -64,6 +64,7 @@ export const OpportunityPage: React.FC = () => {
   const [selectedFriendId, setSelectedFriendId] = useState('');
   const [recommendComment, setRecommendComment] = useState('');
   const [isRecommending, setIsRecommending] = useState(false);
+  const [isModerating, setIsModerating] = useState(false);
 
   const returnTo = searchParams.get('from');
   const userId = searchParams.get('userId');
@@ -196,6 +197,19 @@ export const OpportunityPage: React.FC = () => {
       toast.error(error instanceof Error ? error.message : 'Не удалось отправить рекомендацию');
     } finally {
       setIsRecommending(false);
+    }
+  };
+
+  const handleModerateOpportunity = async (status: 'active' | 'closed') => {
+    setIsModerating(true);
+    try {
+      await appApi.moderateOpportunity(id!, status);
+      toast.success(status === 'active' ? 'Возможность одобрена' : 'Возможность отклонена');
+      navigate('/dashboard/curator?tab=opportunities');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Не удалось обработать возможность');
+    } finally {
+      setIsModerating(false);
     }
   };
 
@@ -526,6 +540,33 @@ export const OpportunityPage: React.FC = () => {
                     </Button>
                     <Button variant="outline" onClick={() => navigate('/register')} className="flex-1">
                       Зарегистрироваться
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {currentUser?.role === 'curator' && opportunity.status === 'planned' && (
+                <div className="pt-6 border-t">
+                  <p className="text-gray-600 mb-3">
+                    Эта возможность требует модерации
+                  </p>
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={() => handleModerateOpportunity('active')} 
+                      disabled={isModerating}
+                      className="flex-1"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      {isModerating ? 'Одобрение...' : 'Одобрить'}
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      onClick={() => handleModerateOpportunity('closed')}
+                      disabled={isModerating}
+                      className="flex-1"
+                    >
+                      <XCircle className="w-4 h-4 mr-2" />
+                      {isModerating ? 'Отклонение...' : 'Отклонить'}
                     </Button>
                   </div>
                 </div>
